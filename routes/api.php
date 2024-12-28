@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Backend\BudgetController;
+use App\Http\Controllers\Api\Backend\CategoryController;
 use App\Http\Controllers\Api\Backend\Auth\AuthController;
 
 Route::middleware('api')->group(function () {
@@ -18,7 +20,28 @@ Route::middleware('api')->group(function () {
             Route::post('/api/reset-password', 'resetPassword'); */
             Route::get('/api/refresh-token', 'refresh');
             Route::post('/api/logout', 'logout');
-            
+        });
+    });
+
+
+    //CategoryController routes
+    Route::controller(CategoryController::class)->group(function () {
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/api/categories', 'index');
+            Route::post('/api/categories', 'store');
+            // Route::get('/api/categories/{id}', 'show');
+            // Route::put('/api/categories/{id}', 'update');
+            // Route::delete('/api/categories/{id}', 'destroy');
+        });
+    });
+
+    //BudgetController routes
+    Route::controller(BudgetController::class)->group(function () {
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/api/budgets', 'index');
+            Route::post('/api/budgets', 'store');
+            Route::put('/api/budgets/{id}', 'update');
+            Route::delete('/api/budgets/{id}', 'destroy');
         });
     });
 });

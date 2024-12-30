@@ -1,27 +1,42 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Backend\BudgetController;
-use App\Http\Controllers\Api\Backend\CategoryController;
-use App\Http\Controllers\Api\Backend\Auth\AuthController;
+use App\Http\Controllers\API\BudgetController;
+use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\Auth\LogoutController;
+use App\Http\Controllers\API\TransactionController;
+use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\Auth\ResetPasswordController;
 
 Route::middleware('api')->group(function () {
-    Route::controller(AuthController::class)->group(function () {
-        Route::post('/api/register', 'register');
+
+    //LoginController Routes
+    Route::controller(LoginController::class)->group(function () {
         Route::post('/api/login', 'login');
+    });
+
+    //RegisterController Routes
+    Route::controller(RegisterController::class)->group(function () {
+        Route::post('/api/register', 'register');
         Route::post('/api/verify-email', 'verifyEmail');
         Route::post('/api/resend-registration-otp', 'resendRegistrationOtp');
+    });
+
+    //ResetPasswordController Routes
+    Route::controller(ResetPasswordController::class)->group(function () {
         Route::post('/api/password-reset-otp', 'sendPasswordResetOtp');
         Route::post('/api/password-reset', 'resetPassword');
+    });
+
+    //LogoutController Routes
+    Route::controller(LogoutController::class)->group(function () {
         Route::middleware('auth:api')->group(function () {
-            /* Route::get('/api/profile', 'profile');
-            Route::post('/api/send-otp', 'sendOtp');
-            Route::post('/api/verify-otp', 'verifyOTP');
-            Route::post('/api/reset-password', 'resetPassword'); */
             Route::get('/api/refresh-token', 'refresh');
             Route::post('/api/logout', 'logout');
         });
     });
+
 
 
     //CategoryController routes
@@ -29,9 +44,6 @@ Route::middleware('api')->group(function () {
         Route::middleware('auth:api')->group(function () {
             Route::get('/api/categories', 'index');
             Route::post('/api/categories', 'store');
-            // Route::get('/api/categories/{id}', 'show');
-            // Route::put('/api/categories/{id}', 'update');
-            // Route::delete('/api/categories/{id}', 'destroy');
         });
     });
 
@@ -42,6 +54,16 @@ Route::middleware('api')->group(function () {
             Route::post('/api/budgets', 'store');
             Route::put('/api/budgets/{id}', 'update');
             Route::delete('/api/budgets/{id}', 'destroy');
+        });
+    });
+
+    //TransactionController routes
+    Route::controller(TransactionController::class)->group(function () {
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/api/transactions', 'index');
+            Route::post('/api/transactions', 'store');
+            Route::put('/api/transactions/{id}', 'update');
+            Route::delete('/api/transactions/{id}', 'destroy');
         });
     });
 });

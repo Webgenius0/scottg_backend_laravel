@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class BudgetController extends Controller
@@ -126,6 +127,9 @@ class BudgetController extends Controller
 
     public function store(Request $request)
     {
+        // Start a database transaction to ensure data integrity
+        DB::beginTransaction();
+
         try {
             $request->validate([
                 'type' => 'required|in:income,expense,planned savings,taxes',
@@ -147,14 +151,23 @@ class BudgetController extends Controller
                 'annual' => $annual,
             ]);
 
+            //commit the transaction if everything goes well
+            DB::commit();
+
             return ApiResponse::success('Budget created successfully', $budget);
         } catch (Exception $e) {
+            //rollback the transaction if something goes wrong
+            DB::rollBack();
             return ApiResponse::error($e->getMessage());
         }
     }
 
     public function update(Request $request, $id)
     {
+
+        // Start a database transaction to ensure data integrity
+        DB::beginTransaction();
+
         try {
             $request->validate([
                 'type' => 'required|in:income,expense,planned savings,taxes',
@@ -177,8 +190,15 @@ class BudgetController extends Controller
                 'annual' => $annual,
             ]);
 
+            //commit the transaction if everything goes well
+            DB::commit();
+
             return ApiResponse::success('Budget updated successfully', $budget);
         } catch (Exception $e) {
+
+            //rollback the transaction if something goes wrong
+            DB::rollBack();
+
             return ApiResponse::error($e->getMessage());
         }
     }
@@ -226,13 +246,51 @@ class BudgetController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        // Start a database transaction to ensure data integrity
+        DB::beginTransaction();
+
         try {
             $budget = Budget::where('user_id', auth()->id())->findOrFail($id);
             $budget->delete();
 
+            //commit the transaction if everything goes well
+            DB::commit();
+
             return ApiResponse::success('Budget deleted successfully');
         } catch (Exception $e) {
+
+            //rollback the transaction if something goes wrong
+            DB::rollBack();
+
             return ApiResponse::error($e->getMessage());
         }
     }
+
+    /* public function calculateBudgetSums()
+    {
+        // Sum of monthly and annual budgets for each type
+        $incomeMonthlySum = Budget::where('type', 'income')->sum('monthly');
+        $incomeAnnualSum = Budget::where('type', 'income')->sum('annual');
+        $expenseMonthlySum = Budget::where('type', 'expense')->sum('monthly');
+        $expenseAnnualSum = Budget::where('type', 'expense')->sum('annual');
+        $plannedSavingsMonthlySum = Budget::where('type', 'planned savings')->sum('monthly');
+        $plannedSavingsAnnualSum = Budget::where('type', 'planned savings')->sum('annual');
+        $taxesMonthlySum = Budget::where('type', 'taxes')->sum('monthly');
+        $taxesAnnualSum = Budget::where('type', 'taxes')->sum('annual');
+
+        // Combine results into an array
+        $budgetSums = [
+            'income_monthly' => $incomeMonthlySum,
+            'income_annual' => $incomeAnnualSum,
+            'expense_monthly' => $expenseMonthlySum,
+            'expense_annual' => $expenseAnnualSum,
+            'planned_savings_monthly' => $plannedSavingsMonthlySum,
+            'planned_savings_annual' => $plannedSavingsAnnualSum,
+            'taxes_monthly' => $taxesMonthlySum,
+            'taxes_annual' => $taxesAnnualSum,
+        ];
+
+        // Return response as JSON
+        return ApiResponse::success('Budget sums calculated successfully', $budgetSums);
+    } */
 }

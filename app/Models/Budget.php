@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 
 class Budget extends Model
 {
     protected $fillable = [
+        'user_id',
+        'category_id',
+        'type',
         'name',
-        'type', // Added type field
         'monthly',
         'annual',
-        'category_id',
-        'user_id',
     ];
 
-    public static function boot()
+    /* public static function boot()
     {
         parent::boot();
 
@@ -28,7 +30,7 @@ class Budget extends Model
             $category = $budget->category;
             $category->updateBudgetSums();
         });
-    }
+    } */
 
     public function category()
     {
@@ -39,4 +41,5 @@ class Budget extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 }

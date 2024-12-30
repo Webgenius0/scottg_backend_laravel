@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\Transaction;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -44,6 +45,11 @@ class User extends Authenticatable implements JWTSubject
     public function budgets()
     {
         return $this->hasMany(Budget::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 
 }

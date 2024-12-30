@@ -60,7 +60,7 @@ class LoginController extends Controller
             return ApiResponse::success('Token refreshed successfully', [
                 'token_type' => 'Bearer',
                 'token' => $token,
-                'token_expires_in' => config('jwt.ttl') * 60,
+                'token_expires_in' => config('jwt.ttl'),
                 'user' => $user,
             ]);
         } catch (Exception $e) {

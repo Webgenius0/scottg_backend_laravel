@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\API\Auth;
 
+use Exception;
 use App\Models\User;
 use App\Helpers\ApiResponse;
 use App\Services\OtpService;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use Exception;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
@@ -29,15 +30,19 @@ class RegisterController extends Controller
             $user = User::create([
                 'first_name' => $validatedData['first_name'],
                 'last_name' => $validatedData['last_name'],
-                'phone' => $validatedData['phone'],
                 'email' => $validatedData['email'],
+                'phone' => $validatedData['phone'],
                 'password' => Hash::make($validatedData['password']),
             ]);
 
             // Generate and send OTP
             OtpService::generateAndSendOtp($user);
 
+            // Generate JWT token
+            $token = JWTAuth::fromUser($user);
+
             return ApiResponse::success('User registered successfully, please verify your email.', [
+                'token' => $token,
                 'user' => $user,
             ]);
         } catch (Exception $e) {
@@ -93,7 +98,11 @@ class RegisterController extends Controller
             $user->email_verified_at = now();
             $user->save();
 
+            // Generate JWT token
+            $token = JWTAuth::fromUser($user);
+
             return ApiResponse::success('Email verified successfully', [
+                'token' => $token,
                 'user' => $user,
             ]);
         } catch (Exception $e) {

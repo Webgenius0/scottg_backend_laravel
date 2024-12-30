@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\API\Auth;
 
+use Exception;
 use App\Models\User;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -23,7 +24,9 @@ class LoginController extends Controller
             ]);
 
             $credentials = $request->only(['email', 'password']);
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)
+            ->select('first_name', 'last_name', 'email', 'phone', 'email_verified_at')
+            ->first();
 
             if (!$user) {
                 return ApiResponse::error('User not found', 404);
@@ -38,10 +41,31 @@ class LoginController extends Controller
             }
 
             return ApiResponse::success('Logged in successfully', [
+                'token_type' => 'Bearer',
                 'token' => $token,
+                'token_expires_in' => config('jwt.ttl') * 60,
+                'user' => $user,
             ]);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage());
         }
     }
+
+    public function refresh()
+    {
+        try {
+            $token = JWTAuth::refresh(JWTAuth::getToken());
+            $user = auth()->user()->only('first_name', 'last_name', 'email', 'phone', 'email_verified_at');
+
+            return ApiResponse::success('Token refreshed successfully', [
+                'token_type' => 'Bearer',
+                'token' => $token,
+                'token_expires_in' => config('jwt.ttl') * 60,
+                'user' => $user,
+            ]);
+        } catch (Exception $e) {
+            return ApiResponse::error($e->getMessage());
+        }
+    }
+
 }

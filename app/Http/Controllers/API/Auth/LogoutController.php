@@ -21,17 +21,4 @@ class LogoutController extends Controller
             return ApiResponse::error($e->getMessage());
         }
     }
-
-    public function refresh()
-    {
-
-        try {
-
-            return response()->json([
-                'token' => JWTAuth::refresh(JWTAuth::getToken())
-            ]);
-        } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
-        }
-    }
 }

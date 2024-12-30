@@ -14,6 +14,9 @@ Route::middleware('api')->group(function () {
     //LoginController Routes
     Route::controller(LoginController::class)->group(function () {
         Route::post('/api/login', 'login');
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/api/refresh-token', 'refresh');
+        });
     });
 
     //RegisterController Routes
@@ -31,11 +34,9 @@ Route::middleware('api')->group(function () {
 
     //LogoutController Routes
     Route::controller(LogoutController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/refresh-token', 'refresh');
-            Route::post('/api/logout', 'logout');
-        });
+        Route::middleware('auth:api')->post('/api/logout', 'logout');
     });
+
 
 
 
@@ -67,3 +68,5 @@ Route::middleware('api')->group(function () {
         });
     });
 });
+
+

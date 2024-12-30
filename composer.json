@@ -32,9 +32,7 @@
         },
         "files": [
             "app/Helpers/helper.php",
-            "app/Helpers/apiResponse.php",
-            "app/Helpers/helper_functions.php",
-            "app/Services/OtpService.php"
+            "app/Helpers/ApiResponse"
         ]
     },
     "autoload-dev": {

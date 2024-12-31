@@ -98,6 +98,9 @@ class Helper {
         ];
         return response()->json($response, $code);
     }
+    public function red(){
+        return "dshfds";
+    }
 
 
 

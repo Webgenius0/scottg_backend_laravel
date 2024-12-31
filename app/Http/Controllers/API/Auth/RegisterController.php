@@ -100,6 +100,7 @@ class RegisterController extends Controller
             Log::error($e->getMessage());
           return Helper::jsonErrorResponse('User registration failed', 500, [$e->getMessage()]);
         }
+
     }
 
 

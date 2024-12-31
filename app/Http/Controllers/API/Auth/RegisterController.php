@@ -43,8 +43,8 @@ class RegisterController extends Controller
 
             return ApiResponse::success('User registered successfully, please verify your email.', [
                 'token' => $token,
-                'user' => $user,
-            ]);
+                'user' => $user->only('first_name', 'last_name', 'email', 'phone'),
+            ],200);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage());
         }
@@ -103,7 +103,7 @@ class RegisterController extends Controller
 
             return ApiResponse::success('Email verified successfully', [
                 'token' => $token,
-                'user' => $user,
+                'user' => $user->only('first_name', 'last_name', 'email', 'phone'),
             ]);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage());

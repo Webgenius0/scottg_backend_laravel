@@ -2,11 +2,24 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\Budget;
+use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'income_monthly',
+        'income_annual',
+        'expense_monthly',
+        'expense_annual',
+        'planned_savings_monthly',
+        'planned_savings_annual',
+        'taxes_monthly',
+        'taxes_annual'
+    ];
 
     public function user()
     {
@@ -18,7 +31,12 @@ class Category extends Model
         return $this->hasMany(Budget::class, 'category_id');
     }
 
-    public function updateBudgetSums()
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /* public function updateBudgetSums()
     {
         $budgets = $this->budgets;
 
@@ -35,6 +53,5 @@ class Category extends Model
         $this->taxes_annual = $budgets->where('type', 'taxes')->sum('annual');
 
         $this->save();
-    }
+    } */
 }
-

@@ -9,7 +9,8 @@ class ApiResponse
         return response()->json([
             'status' => 'success',
             'message' => $message,
-            'data' => $data
+            'data' => $data,
+            'code' => $code
         ], $code);
     }
 
@@ -21,3 +22,4 @@ class ApiResponse
         ], $code);
     }
 }
+

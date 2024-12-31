@@ -30,6 +30,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->softDeletes();
             $table->rememberToken();
+
             $table->timestamps();
         });
 

@@ -2,66 +2,118 @@
 
 namespace App\Http\Controllers\API\Auth;
 
+use Exception;
+use Carbon\Carbon;
 use App\Models\User;
-use App\Helpers\ApiResponse;
-use App\Services\OtpService;
+use App\Mail\OtpMail;
+use App\Helpers\Helper;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Exception;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class ResetPasswordController extends Controller
 {
-
-    // Send OTP for password reset
-    public function sendPasswordResetOtp(Request $request)
+    public function forgotPassword(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
         try {
+            $email = $request->input('email');
+            $otp = random_int(10000, 99999);
+            $user = User::where('email', $email)->first();
 
-            $request->validate([
-                'email' => 'required|string|email',
-            ]);
-
-            $user = User::where('email', $request->email)->first();
-
-            if (!$user) {
-                return ApiResponse::error('User not found', 404);
+            if ($user) {
+                Mail::to($email)->send(new OtpMail($otp, $user, 'Reset Your Password'));
+                $user->update([
+                    'otp' => $otp,
+                    'otp_expires_at' => Carbon::now()->addMinutes(60),
+                ]);
+                return Helper::jsonResponse(true, 'OTP Code Sent Successfully Please Check Your Email.', 200);
+            } else {
+                return Helper::jsonErrorResponse('Invalid Email Address', 404);
             }
-
-            // Generate and send OTP
-            OtpService::generateAndSendOtp($user);
-
-            return ApiResponse::success('OTP sent successfully');
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
 
-    // Verify OTP and reset password
-    public function resetPassword(Request $request)
+    public function VerifyOTP(Request $request): \Illuminate\Http\JsonResponse
     {
 
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:5',
+        ]);
+
         try {
+            $email = $request->input('email');
+            $otp = $request->input('otp');
+            $user = User::where('email', $email)->first();
 
-            $request->validate([
-                'email' => 'required|string|email',
-                'otp' => 'required|string',
-                'password' => 'required|string|min:8|confirmed',
-            ]);
-
-            $isVerified = OtpService::verifyOtp($request->email, $request->otp);
-
-            if (!$isVerified) {
-                return ApiResponse::error('Invalid OTP', 400);
+            if (!$user) {
+                return Helper::jsonErrorResponse('User not found', 404);
             }
 
-            $user = User::where('email', $request->email)->first();
-            $user->password = Hash::make($request->password);
-            $user->save();
+            if (Carbon::parse($user->otp_expires_at)->isPast()) {
+                return Helper::jsonErrorResponse('OTP has expired.', 400);
+            }
 
-            return ApiResponse::success('Password reset successfully');
+            if ($user->otp !== $otp) {
+                return Helper::jsonErrorResponse('Invalid OTP', 400);
+            }
+            $token = Str::random(60);
+            $user->update([
+                'otp' => null,
+                'otp_expires_at' => null,
+                'reset_password_token' => $token,
+                'reset_password_token_expire_at' => Carbon::now()->addHour(),
+            ]);
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP verified successfully.',
+                'code' => 200,
+                'token' => $token,
+            ]);
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
+        }
+    }
+
+    public function ResetPassword(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+
+        ]);
+
+        try {
+            $email = $request->input('email');
+            $newPassword = $request->input('password');
+
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                return Helper::jsonErrorResponse('User not found', 404);
+            }
+
+            if (!empty($user->reset_password_token) && $user->reset_password_token === $request->token && $user->reset_password_token_expire_at >= Carbon::now()) {
+                $user->update([
+                    'password' => Hash::make($newPassword),
+                    'reset_password_token' => null,
+                    'reset_password_token_expire_at' => null,
+                ]);
+
+                return Helper::jsonResponse(true, 'Password reset successfully.', 200);
+            } else {
+                return Helper::jsonErrorResponse('Invalid Token', 419);
+            }
+        } catch (Exception $e) {
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
 }

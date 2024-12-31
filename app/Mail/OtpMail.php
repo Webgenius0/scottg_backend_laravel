@@ -20,7 +20,7 @@ class OtpMail extends Mailable
      */
     public function __construct($otp)
     {
-        
+
         $this->otp = $otp;
 
     }
@@ -45,11 +45,6 @@ class OtpMail extends Mailable
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

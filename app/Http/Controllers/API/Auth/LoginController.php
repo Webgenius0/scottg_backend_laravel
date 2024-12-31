@@ -4,68 +4,75 @@ namespace App\Http\Controllers\API\Auth;
 
 use Exception;
 use App\Models\User;
-use App\Helpers\ApiResponse;
+use App\Helpers\Helper;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
-
-    // Login functionality
-    public function login(Request $request)
+    public function Login(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'email'    => 'required|string',
+            'password' => 'required|string',
+        ]);
+
         try {
+            // Check if email is valid
+            if (filter_var($request->email, FILTER_VALIDATE_EMAIL) !== false) {
+                $user = User::withTrashed()->where('email', $request->email)->first();
+                if (empty($user)) {
+                    return Helper::jsonErrorResponse('User not found', 404);
+                }
 
-            $request->validate([
-                'email' => 'required|string|email',
-                'password' => 'required|string',
-            ]);
-
-            $credentials = $request->only(['email', 'password']);
-            $user = User::where('email', $request->email)
-            ->select('first_name', 'last_name', 'email', 'phone', 'email_verified_at')
-            ->first();
-
-            if (!$user) {
-                return ApiResponse::error('User not found', 404);
+                if ($user->email_verified_at) {
+                    $user->is_verified = true;
+                    $user->save();
+                }
             }
 
-            if (is_null($user->email_verified_at)) {
-                return ApiResponse::error('Email not verified. Please verify your email first.', 403);
+            // Check the password
+            if (!Hash::check($request->password, $user->password)) {
+                return Helper::jsonErrorResponse('Invalid password', 401);
             }
 
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return ApiResponse::error('Invalid credentials', 400);
+            // Check if the email is verified before login is successful
+            if (!$user->email_verified_at) {
+                return Helper::jsonErrorResponse('Email not verified. Please verify your email before logging in.', 403);
             }
 
-            return ApiResponse::success('Logged in successfully', [
-                'token_type' => 'Bearer',
-                'token' => $token,
-                'token_expires_in' => config('jwt.ttl') * 60,
-                'user' => $user,
-            ]);
+            // Generate token if email is verified and role matches
+            $token = auth('api')->login($user);
+
+            return response()->json([
+                'status'     => true,
+                'message'    => 'User logged in successfully.',
+                'code'       => 200,
+                'token_type' => 'bearer',
+                'token'      => $token,
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'data'       => auth('api')->user(),
+            ], 200);
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
+            return Helper::jsonErrorResponse($e->getMessage(), 500);
         }
     }
 
-    public function refresh()
+
+    public function refreshToken(): \Illuminate\Http\JsonResponse
     {
-        try {
-            $token = JWTAuth::refresh(JWTAuth::getToken());
-            $user = auth()->user()->only('first_name', 'last_name', 'email', 'phone', 'email_verified_at');
+        $refreshToken = auth('api')->refresh();
 
-            return ApiResponse::success('Token refreshed successfully', [
-                'token_type' => 'Bearer',
-                'token' => $token,
-                'token_expires_in' => config('jwt.ttl') * 60,
-                'user' => $user,
-            ]);
-        } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
-        }
+        return response()->json([
+            'status'     => true,
+            'message'    => 'Access token refreshed successfully.',
+            'code'       => 200,
+            'token_type' => 'bearer',
+            'token'      => $refreshToken,
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'data' => auth('api')->user()->load('personalizedSickle')
+        ]);
     }
-
 }

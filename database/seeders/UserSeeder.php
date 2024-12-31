@@ -20,24 +20,49 @@ class UserSeeder extends Seeder
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => 'admin@admin.com',
-            'phone' => '1234567890',
             'role' => 'admin',
             'password' => Hash::make('12345678'),
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'is_verified' => true,
         ]);
+        User::create([
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => 'user1@gmail.com',
+            'password' => Hash::make('12345678'),
+            'avatar' => null,
+            'is_verified' => true,
+            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
+        User::create([
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => 'user2@gmail.com',
+            'password' => Hash::make('12345678'),
+            'avatar' => null,
+            'is_verified' => true,
+            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
 
-        // Create five normal users with fake data
-        for ($i = 1; $i <= 5; $i++) {
-            User::create([
-                'first_name' => fake()->firstName(),
-                'last_name' => fake()->lastName(),
-                'email' => fake()->email(),
-                'phone' => fake()->phoneNumber(),
-                'role' => 'user',
-                'password' => Hash::make('12345678'),
-                'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
-            ]);
-        }
+        ]); // Create a Teacher User
+        User::create([
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => 'user3@gmail.com',
+            'password' => Hash::make('12345678'),
+            'avatar' => null,
+            'is_verified' => true,
+            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+
+        ]);
+        User::create([
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'email' => 'user4@gmail.com',
+            'password' => Hash::make('12345678'),
+            'avatar' => null,
+            'is_verified' => true,
+            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
     }
 }
 

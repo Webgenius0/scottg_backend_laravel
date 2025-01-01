@@ -27,6 +27,10 @@ class RegisterController extends Controller
                 'password' => 'required|string|min:8',
             ]);
 
+            if (User::where('email', $validatedData['email'])->exists()) {
+                return ApiResponse::error('Email already exists, please verify your email', 400);
+            }
+
             $user = User::create([
                 'first_name' => $validatedData['first_name'],
                 'last_name' => $validatedData['last_name'],
@@ -44,7 +48,7 @@ class RegisterController extends Controller
             return ApiResponse::success('User registered successfully, please verify your email.', [
                 'token' => $token,
                 'user' => $user->only('first_name', 'last_name', 'email', 'phone'),
-            ],200);
+            ]);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage());
         }
@@ -88,15 +92,23 @@ class RegisterController extends Controller
 
         try {
 
+            $user = User::where('email', $request->email)->first();
+
+            if ($user->email_verified_at) {
+                return ApiResponse::error('Email is already verified.', 400);
+            }
+
+            if (!$user) {
+                return ApiResponse::error('User not found', 404);
+            }
+
             $isVerified = OtpService::verifyOtp($request->email, $request->otp);
 
             if (!$isVerified) {
                 return ApiResponse::error('Invalid OTP', 400);
             }
 
-            $user = User::where('email', $request->email)->first();
-            $user->email_verified_at = now();
-            $user->save();
+            $user->markEmailAsVerified();
 
             // Generate JWT token
             $token = JWTAuth::fromUser($user);

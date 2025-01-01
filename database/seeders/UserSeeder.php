@@ -23,6 +23,7 @@ class UserSeeder extends Seeder
             'phone' => '1234567890',
             'role' => 'admin',
             'password' => Hash::make('12345678'),
+            'otp' => 'email_verified',
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
         ]);
 
@@ -35,6 +36,7 @@ class UserSeeder extends Seeder
                 'phone' => fake()->phoneNumber(),
                 'role' => 'user',
                 'password' => Hash::make('12345678'),
+                'otp' => 'email_verified',
                 'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
             ]);
         }

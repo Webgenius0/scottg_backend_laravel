@@ -10,11 +10,9 @@ use Exception;
 
 class LogoutController extends Controller
 {
-
     public function logout()
     {
         try {
-
             JWTAuth::invalidate(JWTAuth::getToken());
             return ApiResponse::success('Successfully logged out');
         } catch (Exception $e) {

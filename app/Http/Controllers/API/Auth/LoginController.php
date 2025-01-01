@@ -28,6 +28,10 @@ class LoginController extends Controller
             ->select('first_name', 'last_name', 'email', 'phone', 'email_verified_at')
             ->first();
 
+            if($user->role == 'admin'){
+                return redirect()->route('admin.dashboard');
+            }
+
             if (!$user) {
                 return ApiResponse::error('User not found', 404);
             }
@@ -39,6 +43,8 @@ class LoginController extends Controller
             if (!$token = JWTAuth::attempt($credentials)) {
                 return ApiResponse::error('Invalid credentials', 400);
             }
+
+            
 
             return ApiResponse::success('Logged in successfully', [
                 'token_type' => 'Bearer',
@@ -54,14 +60,24 @@ class LoginController extends Controller
     public function refresh()
     {
         try {
-            $token = JWTAuth::refresh(JWTAuth::getToken());
-            $user = auth()->user()->only('first_name', 'last_name', 'email', 'phone', 'email_verified_at');
+            $currentToken = JWTAuth::getToken();
+
+            if (!$currentToken) {
+                return ApiResponse::error('No token provided', 400);
+            }
+
+            $token = JWTAuth::refresh($currentToken);
+            $user = auth()->user();
+
+            if (!$user) {
+                return ApiResponse::error('User not found', 404);
+            }
 
             return ApiResponse::success('Token refreshed successfully', [
                 'token_type' => 'Bearer',
                 'token' => $token,
                 'token_expires_in' => config('jwt.ttl') * 60,
-                'user' => $user,
+                'user' => $user->only('first_name', 'last_name', 'email', 'phone', 'email_verified_at'),
             ]);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage());

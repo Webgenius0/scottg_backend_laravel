@@ -47,6 +47,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Title</th>
+                                        <th>Blog Category</th>
                                         <th>Content</th>
                                         <th>Image</th>
                                         <th>Status</th>
@@ -119,6 +120,12 @@
                         }, {
                             data: 'title',
                             name: 'title',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'blog_category',
+                            name: 'blog_category',
                             orderable: true,
                             searchable: true
                         },

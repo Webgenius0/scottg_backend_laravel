@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Blog;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
@@ -51,6 +52,11 @@ class User extends Authenticatable implements JWTSubject
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function blogs()
+    {
+        return $this->hasMany(Blog::class);
     }
 
 }

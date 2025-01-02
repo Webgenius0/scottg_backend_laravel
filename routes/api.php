@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\BudgetController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\LoginController;
@@ -69,6 +70,15 @@ Route::middleware('api')->group(function () {
             Route::delete('/api/transactions/{id}', 'destroy');
         });
     });
+
+    //BlogController routes
+    Route::controller(BlogController::class)->group(function () {
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/api/blogs', 'getActiveBlogs');
+            Route::get('/api/blogs/{slug}', 'getBlogBySlug');
+        });
+    });
+
 });
 
 

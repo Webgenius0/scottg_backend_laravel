@@ -71,16 +71,18 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'blog_category' => 'required|string',
             'content' => 'required|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
 
         try {
             $blog = new Blog();
+            $blog->user_id = auth()->user()->id;
             $blog->title = $request->title;
+            $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
             $blog->slug = Helper::makeSlug($blog, $request->title);
-            $blog->status = 'active';
             $blog->image = Helper::fileUpload($request->file('image'), 'blog', $request->file('image')->getClientOriginalName());
 
             $blog->save();
@@ -105,13 +107,16 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'blog_category' => 'required|string',
             'content' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         try {
             $blog = Blog::findOrFail($id);
+            $blog->user_id = auth()->user()->id;
             $blog->title = $request->title;
+            $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
             $blog->slug = Helper::makeSlug($blog, $request->title);
 

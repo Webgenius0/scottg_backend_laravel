@@ -1,62 +1,62 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\BudgetController;
-use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\LogoutController;
-use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
+use App\Http\Controllers\API\BlogController;
+use App\Http\Controllers\API\BudgetController;
+use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\TransactionController;
+use Illuminate\Support\Facades\Route;
 
-Route::group(['middleware' => 'guest:api'], static function () {
-    //register
+// Guest routes
+Route::group(['middleware' => 'guest:api'], function () {
+    // Register
     Route::post('register', [RegisterController::class, 'register']);
     Route::post('/verify-email', [RegisterController::class, 'VerifyEmail']);
     Route::post('/resend-otp', [RegisterController::class, 'ResendOtp']);
-    //login
+
+    // Login
     Route::post('login', [LoginController::class, 'login']);
-    //forgot password
+
+    // Forgot password
     Route::post('/forget-password', [ResetPasswordController::class, 'forgotPassword']);
     Route::post('/verify-otp', [ResetPasswordController::class, 'VerifyOTP']);
     Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
-    //social login
-//    Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
 });
 
-Route::group(['middleware' => 'auth:api'], static function () {
+// Authenticated routes
+Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
     Route::post('/logout', [LogoutController::class, 'logout']);
 
-    //CategoryController routes
+    // CategoryController routes
     Route::controller(CategoryController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/categories', 'index');
-            Route::post('/api/categories', 'store');
-        });
+        Route::get('/categories', 'index');
+        Route::post('/categories', 'store');
     });
 
-    //BudgetController routes
+    // BudgetController routes
     Route::controller(BudgetController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/budgets', 'index');
-            Route::post('/api/budgets', 'store');
-            Route::put('/api/budgets/{id}', 'update');
-            Route::delete('/api/budgets/{id}', 'destroy');
-        });
+        Route::get('/budgets', 'index');
+        Route::post('/budgets', 'store');
+        Route::put('/budgets/{id}', 'update');
+        Route::delete('/budgets/{id}', 'destroy');
     });
 
-    //TransactionController routes
+    // TransactionController routes
     Route::controller(TransactionController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/transactions', 'index');
-            Route::post('/api/transactions', 'store');
-            Route::put('/api/transactions/{id}', 'update');
-            Route::delete('/api/transactions/{id}', 'destroy');
-        });
+        Route::get('/transactions', 'index');
+        Route::post('/transactions', 'store');
+        Route::put('/transactions/{id}', 'update');
+        Route::delete('/transactions/{id}', 'destroy');
     });
 
+    // BlogController routes
+    Route::controller(BlogController::class)->group(function () {
+        Route::get('/blogs', 'getActiveBlogs');
+        Route::get('/blogs/{slug}', 'getBlogBySlug');
+    });
 });
-
-
 

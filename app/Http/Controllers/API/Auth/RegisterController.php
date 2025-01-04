@@ -39,7 +39,7 @@ class RegisterController extends Controller
             ]);
 
             // Send OTP email
-            Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->send(new OtpMail($otp));
             return response()->json([
                 'status' => true,
                 'message' => 'User successfully registered. Please verify your email to log in.',
@@ -60,7 +60,7 @@ class RegisterController extends Controller
         ]);
 
         try {
-            $user = User::where('email', $request->input('email'))->first();
+            $user = User::query()->where('email', $request->input('email'))->first();
 
             // Check if email has already been verified
             if (!empty($user->email_verified_at)) {
@@ -110,7 +110,7 @@ class RegisterController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
         try {
-            $user = User::where('email', $request->input('email'))->first();
+            $user = User::query()->where('email', $request->input('email'))->first();
             if (!$user) {
                 return Helper::jsonErrorResponse('User not found.', 404);
             }
@@ -124,7 +124,7 @@ class RegisterController extends Controller
             $user->otp = $newOtp;
             $user->otp_expires_at = $otpExpiresAt;
             $user->save();
-            Mail::to($user->email)->send(new OtpMail($newOtp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->send(new OtpMail($newOtp));
 
             return Helper::jsonResponse(true, 'A new OTP has been sent to your email.', 200);
         } catch (Exception $e) {

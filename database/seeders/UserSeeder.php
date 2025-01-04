@@ -22,9 +22,11 @@ class UserSeeder extends Seeder
             'email' => 'admin@admin.com',
             'role' => 'admin',
             'password' => Hash::make('12345678'),
+            'otp' => 'email_verified',
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
             'is_verified' => true,
         ]);
+
         User::create([
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
@@ -34,6 +36,7 @@ class UserSeeder extends Seeder
             'is_verified' => true,
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
         ]);
+
         User::create([
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
@@ -43,7 +46,8 @@ class UserSeeder extends Seeder
             'is_verified' => true,
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
 
-        ]); // Create a Teacher User
+        ]);
+
         User::create([
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
@@ -54,6 +58,7 @@ class UserSeeder extends Seeder
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
 
         ]);
+
         User::create([
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
@@ -63,6 +68,11 @@ class UserSeeder extends Seeder
             'is_verified' => true,
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
         ]);
+
+        // Create five normal users with fake data
+
+
+
     }
 }
 

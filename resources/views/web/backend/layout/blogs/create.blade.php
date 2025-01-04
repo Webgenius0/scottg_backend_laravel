@@ -68,6 +68,16 @@
                                     </div>
 
                                     <div class="form-group">
+                                        <label for="blog_category" class="form-label">Blog Category</label>
+                                        <input type="text" class="form-control @error('blog_category') is-invalid @enderror"
+                                            name="blog_category" id="blog_category" placeholder="Enter blog category here"
+                                            value="{{ old('blog_category') }}">
+                                        @error('blog_category')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
                                         <label for="content" class="form-label">Content</label>
                                         <textarea class="form-control @error('content') is-invalid @enderror" name="content" id="content">{{ old('content') }}</textarea>
                                         @error('content')

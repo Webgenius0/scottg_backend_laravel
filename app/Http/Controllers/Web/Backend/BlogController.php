@@ -12,7 +12,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BlogController extends Controller
 {
-
+    
     public function index(Request $request)
     {
         try {
@@ -70,18 +70,25 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required',
+            'blog_category' => 'required|string',
+            'content' => 'required|string',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
 
+        try {
             $blog = new Blog();
             $blog->title = $request->title;
+            $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
             $blog->slug = Helper::makeSlug($blog, $request->title);
             $blog->image = Helper::fileUpload($request->file('image'), 'blog', $request->file('image')->getClientOriginalName());
+
             $blog->save();
 
             return redirect()->route('admin.blogs')->with('t-success', 'Blog created successfully.');
+        } catch (Exception $e) {
+            return redirect()->back()->with('t-error', 'Something went wrong! Please try again.');
+        }
     }
 
     public function edit($id)
@@ -98,13 +105,15 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'blog_category' => 'required|string',
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         try {
             $blog = Blog::findOrFail($id);
             $blog->title = $request->title;
+            $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
             $blog->slug = Helper::makeSlug($blog, $request->title);
 
@@ -128,7 +137,7 @@ class BlogController extends Controller
 
     public function destroy(string $id)
     {
-
+        
         try {
 
             $data = Blog::find($id);
@@ -145,7 +154,7 @@ class BlogController extends Controller
 
     public function changeStatus($id)
     {
-
+        
         $data = Blog::find($id);
         if ($data->status == 'active') {
             $data->status = 'inactive';
@@ -164,5 +173,7 @@ class BlogController extends Controller
                 'data' => $data,
             ]);
         }
+
     }
+
 }

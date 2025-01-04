@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\NetWorth;
 use App\Models\Transaction;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -116,6 +117,13 @@ class User extends Authenticatable implements JWTSubject
     public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function netWorth()
+    {
+
+        return $this->hasOne(NetWorth::class);
+
     }
 
 }

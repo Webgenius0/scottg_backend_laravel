@@ -2,17 +2,27 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-/**
- * @method static latest()
- * @method static find(string $id)
- * @property mixed|string $slug
- * @property false|mixed|resource|string|null $content
- * @property mixed $title
- * @property mixed|string|null $image
- */
 class Blog extends Model
 {
-    protected $guarded = [];
+    
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'blog_category',
+        'slug',
+        'content',
+        'image',
+        'status',
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
 }

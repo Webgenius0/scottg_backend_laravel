@@ -8,6 +8,7 @@ use App\Helpers\Helper;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
 class BlogController extends Controller
 {
@@ -42,7 +43,6 @@ class BlogController extends Controller
     {
         try {
             $blogs = Blog::where('status', 'active')
-                ->where('user_id', auth()->id())
                 ->select(['title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->get()
                 ->map(function ($blog) {
@@ -59,9 +59,10 @@ class BlogController extends Controller
                     return $blog;
                 });
 
-            return Helper::JsonResponse(true,'Active blogs fetched successfully', $blogs);
+            return Helper::JsonResponse(true,'Active blogs fetched successfully',200, $blogs);
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage(), 404);
+            Log::error($e->getMessage());
+            return Helper::jsonErrorResponse('Blog not found', 500);
         }
     }
 
@@ -71,7 +72,6 @@ class BlogController extends Controller
         try {
             $blog = Blog::where('slug', $slug)
                 ->where('status', 'active')
-                ->where('user_id', auth()->id())
                 ->select(['title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->firstOrFail();
 
@@ -86,9 +86,9 @@ class BlogController extends Controller
                 'image' => auth()->user()->image ? asset(auth()->user()->image) : asset('backend/assets/img/avatars/man.png'),
             ];
 
-            return ApiResponse::success('Blog fetched successfully', $blog);
+            return Helper::jsonResponse(true, 'Blog fetched successfully', 200, $blog);
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage(), 404);
+            return Helper::jsonErrorResponse('Blog not found', 500);
         }
     }
 }

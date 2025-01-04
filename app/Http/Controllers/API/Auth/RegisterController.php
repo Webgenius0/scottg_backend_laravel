@@ -16,9 +16,6 @@ use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
-<<<<<<< HEAD
-    public function register(Request $request): \Illuminate\Http\JsonResponse
-=======
 
     // Registration with OTP
     public function register(Request $request)
@@ -90,7 +87,6 @@ class RegisterController extends Controller
 
     // Verify registration OTP
     public function verifyEmail(Request $request)
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
     {
         $request->validate([
             'first_name' => 'nullable|string|max:100',
@@ -136,28 +132,6 @@ class RegisterController extends Controller
         try {
             $user = User::where('email', $request->input('email'))->first();
 
-<<<<<<< HEAD
-            // Check if email has already been verified
-            if (!empty($user->email_verified_at)) {
-                return Helper::jsonErrorResponse('Email already verified.', 409);
-            }
-
-            // Check if OTP matches
-            if ((string)$user->otp !== (string)$request->input('otp')) {
-                return Helper::jsonErrorResponse('Invalid OTP code', 422);
-            }
-
-            // Check if OTP has expired
-            if (Carbon::parse($user->otp_expires_at)->isPast()) {
-                return Helper::jsonErrorResponse('OTP has expired. Please request a new OTP.', 422);
-            }
-
-            // Verify the email
-            $user->email_verified_at = now();
-            $user->otp = null;
-            $user->otp_expires_at = null;
-            $user->save();
-=======
             $user = User::where('email', $request->email)->first();
 
             if ($user->email_verified_at) {
@@ -175,7 +149,6 @@ class RegisterController extends Controller
             }
 
             $user->markEmailAsVerified();
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
 
             // Generate the token
             $token = auth('api')->login($user);

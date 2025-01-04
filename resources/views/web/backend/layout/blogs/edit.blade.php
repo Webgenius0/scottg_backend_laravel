@@ -69,8 +69,6 @@
                                     </div>
 
                                     <div class="form-group">
-<<<<<<< HEAD
-=======
                                         <label for="blog_category" class="form-label">Blog Category</label>
                                         <input type="text" class="form-control @error('blog_category') is-invalid @enderror"
                                             name="blog_category" id="blog_category" placeholder="Enter blog category here"
@@ -81,7 +79,6 @@
                                     </div>
 
                                     <div class="form-group">
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
                                         <label for="content" class="form-label">Content</label>
                                         <textarea class="form-control @error('content') is-invalid @enderror" name="content" id="content">{{ $blog->content ?? '' }}</textarea>
                                         @error('content')

@@ -47,10 +47,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Title</th>
-<<<<<<< HEAD
-=======
                                         <th>Blog Category</th>
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
                                         <th>Content</th>
                                         <th>Image</th>
                                         <th>Status</th>
@@ -127,15 +124,12 @@
                             searchable: true
                         },
                         {
-<<<<<<< HEAD
-=======
                             data: 'blog_category',
                             name: 'blog_category',
                             orderable: true,
                             searchable: true
                         },
                         {
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
                             data: 'content',
                             name: 'content',
                             orderable: true,

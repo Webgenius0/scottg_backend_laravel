@@ -12,20 +12,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BlogController extends Controller
 {
-<<<<<<< HEAD
-
-=======
     
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
     public function index(Request $request)
     {
         try {
             if ($request->ajax()) {
                 $data = Blog::latest()->get();
-<<<<<<< HEAD
-=======
-
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
                 return DataTables::of($data)
                     ->addIndexColumn()
                     ->addColumn('image', function ($data) {
@@ -78,20 +70,6 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-<<<<<<< HEAD
-            'content' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
-        ]);
-
-            $blog = new Blog();
-            $blog->title = $request->title;
-            $blog->content = $request->content;
-            $blog->slug = Helper::makeSlug($blog, $request->title);
-            $blog->image = Helper::fileUpload($request->file('image'), 'blog', $request->file('image')->getClientOriginalName());
-            $blog->save();
-
-            return redirect()->route('admin.blogs')->with('t-success', 'Blog created successfully.');
-=======
             'blog_category' => 'required|string',
             'content' => 'required|string',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
@@ -99,7 +77,6 @@ class BlogController extends Controller
 
         try {
             $blog = new Blog();
-            $blog->user_id = auth()->user()->id;
             $blog->title = $request->title;
             $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
@@ -112,7 +89,6 @@ class BlogController extends Controller
         } catch (Exception $e) {
             return redirect()->back()->with('t-error', 'Something went wrong! Please try again.');
         }
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
     }
 
     public function edit($id)
@@ -129,25 +105,15 @@ class BlogController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-<<<<<<< HEAD
-            'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-=======
             'blog_category' => 'required|string',
             'content' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
         ]);
 
         try {
             $blog = Blog::findOrFail($id);
-<<<<<<< HEAD
-            $blog->title = $request->title;
-=======
-            $blog->user_id = auth()->user()->id;
             $blog->title = $request->title;
             $blog->blog_category = $request->blog_category;
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
             $blog->content = $request->content;
             $blog->slug = Helper::makeSlug($blog, $request->title);
 
@@ -171,11 +137,7 @@ class BlogController extends Controller
 
     public function destroy(string $id)
     {
-<<<<<<< HEAD
-
-=======
         
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
         try {
 
             $data = Blog::find($id);
@@ -192,11 +154,7 @@ class BlogController extends Controller
 
     public function changeStatus($id)
     {
-<<<<<<< HEAD
-
-=======
         
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
         $data = Blog::find($id);
         if ($data->status == 'active') {
             $data->status = 'inactive';
@@ -215,11 +173,7 @@ class BlogController extends Controller
                 'data' => $data,
             ]);
         }
-<<<<<<< HEAD
-    }
-=======
 
     }
 
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
 }

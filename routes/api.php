@@ -10,7 +10,7 @@ use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
 
-<<<<<<< HEAD
+
 Route::group(['middleware' => 'guest:api'], static function () {
     //register
     Route::post('register', [RegisterController::class, 'register']);
@@ -23,41 +23,9 @@ Route::group(['middleware' => 'guest:api'], static function () {
     Route::post('/verify-otp', [ResetPasswordController::class, 'VerifyOTP']);
     Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
     //social login
-//    Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
+    //    Route::post('/social-login', [SocialLoginController::class, 'SocialLogin']);
 });
-=======
-Route::middleware('api')->group(function () {
 
-    //LoginController Routes
-    Route::controller(LoginController::class)->group(function () {
-        Route::post('/api/login', 'login');
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/refresh-token', 'refresh');
-        });
-    });
-
-    //RegisterController Routes
-    Route::controller(RegisterController::class)->group(function () {
-        Route::post('/api/register', 'register');
-        Route::post('/api/verify-email', 'verifyEmail');
-        Route::post('/api/resend-registration-otp', 'resendRegistrationOtp');
-    });
-
-    //ResetPasswordController Routes
-    Route::controller(ResetPasswordController::class)->group(function () {
-        Route::post('/api/password-reset-otp', 'sendPasswordResetOtp');
-        Route::post('/api/password-reset', 'resetPassword');
-    });
-
-    //LogoutController Routes
-    Route::controller(LogoutController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::post('/api/logout', 'logout');
-        });
-    });
-
-
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
 
 Route::group(['middleware' => 'auth:api'], static function () {
     Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
@@ -91,18 +59,9 @@ Route::group(['middleware' => 'auth:api'], static function () {
         });
     });
 
-<<<<<<< HEAD
-=======
     //BlogController routes
     Route::controller(BlogController::class)->group(function () {
-        Route::middleware('auth:api')->group(function () {
-            Route::get('/api/blogs', 'getActiveBlogs');
-            Route::get('/api/blogs/{slug}', 'getBlogBySlug');
-        });
+        Route::get('/api/blogs', 'getActiveBlogs');
+        Route::get('/api/blogs/{slug}', 'getBlogBySlug');
     });
-
->>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
 });
-
-
-

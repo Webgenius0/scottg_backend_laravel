@@ -43,19 +43,13 @@ class BlogController extends Controller
     {
         try {
             $blogs = Blog::where('status', 'active')
-                ->select(['title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
+                ->select(['id', 'title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->get()
                 ->map(function ($blog) {
                     $blog->content = strip_tags($blog->content);
                     $blog->image = asset($blog->image);
-                    $blog->time_info = [
-                        'date' => $blog->created_at->format('d M Y'),
-                        'time' => $blog->created_at->format('h:i A'),
-                    ];
-                    $blog->user_info = [
-                        'name' => auth()->user()->first_name ?? 'Unknown',
-                        'image' => auth()->user()->image ? asset(auth()->user()->image) : asset('backend/assets/img/avatars/man.png'),
-                    ];
+                    $blog->created_date = $blog->created_at->format('d M Y');
+                    $blog->created_time = $blog->created_at->format('h:i A');
                     return $blog;
                 });
 
@@ -72,19 +66,13 @@ class BlogController extends Controller
         try {
             $blog = Blog::where('slug', $slug)
                 ->where('status', 'active')
-                ->select(['title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
+                ->select(['id', 'title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->firstOrFail();
 
             $blog->content = strip_tags($blog->content);
             $blog->image = asset($blog->image);
-            $blog->time_info = [
-                'date' => $blog->created_at->format('d M Y'),
-                'time' => $blog->created_at->format('h:i A'),
-            ];
-            $blog->user_info = [
-                'name' => auth()->user()->first_name ?? 'Unknown',
-                'image' => auth()->user()->image ? asset(auth()->user()->image) : asset('backend/assets/img/avatars/man.png'),
-            ];
+            $blog->created_date = $blog->created_at->format('d M Y');
+            $blog->created_time = $blog->created_at->format('h:i A');
 
             return Helper::jsonResponse(true, 'Blog fetched successfully', 200, $blog);
         } catch (Exception $e) {

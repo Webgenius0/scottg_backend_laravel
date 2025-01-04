@@ -24,10 +24,10 @@ class ResetPasswordController extends Controller
         try {
             $email = $request->input('email');
             $otp = random_int(10000, 99999);
-            $user = User::where('email', $email)->first();
+            $user = User::where('email', $email)->firstOrFail();
 
             if ($user) {
-                Mail::to($email)->send(new OtpMail($otp, $user, 'Reset Your Password'));
+                Mail::to($email)->send(new OtpMail($otp));
                 $user->update([
                     'otp' => $otp,
                     'otp_expires_at' => Carbon::now()->addMinutes(60),
@@ -52,7 +52,7 @@ class ResetPasswordController extends Controller
         try {
             $email = $request->input('email');
             $otp = $request->input('otp');
-            $user = User::where('email', $email)->first();
+            $user = User::where('email', $email)->firstOrFail();
 
             if (!$user) {
                 return Helper::jsonErrorResponse('User not found', 404);
@@ -96,7 +96,7 @@ class ResetPasswordController extends Controller
             $email = $request->input('email');
             $newPassword = $request->input('password');
 
-            $user = User::where('email', $email)->first();
+            $user = User::where('email', $email)->firstOrFail();
             if (!$user) {
                 return Helper::jsonErrorResponse('User not found', 404);
             }

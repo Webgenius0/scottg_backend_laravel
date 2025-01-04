@@ -16,77 +16,7 @@ use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
-
-    // Registration with OTP
-    public function register(Request $request)
-    {
-        try {
-
-            $validatedData = $request->validate([
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'phone' => 'nullable|string',
-                'password' => 'required|string|min:8',
-            ]);
-
-            if (User::where('email', $validatedData['email'])->exists()) {
-                return ApiResponse::error('Email already exists, please verify your email', 400);
-            }
-
-            $user = User::create([
-                'first_name' => $validatedData['first_name'],
-                'last_name' => $validatedData['last_name'],
-                'email' => $validatedData['email'],
-                'phone' => $validatedData['phone'],
-                'password' => Hash::make($validatedData['password']),
-            ]);
-
-            // Generate and send OTP
-            OtpService::generateAndSendOtp($user);
-
-            // Generate JWT token
-            $token = JWTAuth::fromUser($user);
-
-            return ApiResponse::success('User registered successfully, please verify your email.', [
-                'token' => $token,
-                'user' => $user->only('first_name', 'last_name', 'email', 'phone'),
-            ]);
-        } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
-        }
-    }
-
-    // Resend OTP for registration
-    public function resendRegistrationOtp(Request $request)
-    {
-        try {
-
-            $request->validate([
-                'email' => 'required|string|email',
-            ]);
-
-            $user = User::where('email', $request->email)->first();
-
-            if (!$user) {
-                return ApiResponse::error('User not found', 404);
-            }
-
-            if ($user->email_verified_at) {
-                return ApiResponse::error('Email is already verified.', 400);
-            }
-
-            // Generate and send OTP
-            OtpService::generateAndSendOtp($user);
-
-            return ApiResponse::success('Registration OTP resent successfully.');
-        } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
-        }
-    }
-
-    // Verify registration OTP
-    public function verifyEmail(Request $request)
+    public function register(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
             'first_name' => 'nullable|string|max:100',
@@ -109,7 +39,7 @@ class RegisterController extends Controller
             ]);
 
             // Send OTP email
-            Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->send(new OtpMail($otp));
             return response()->json([
                 'status' => true,
                 'message' => 'User successfully registered. Please verify your email to log in.',
@@ -130,25 +60,28 @@ class RegisterController extends Controller
         ]);
 
         try {
-            $user = User::where('email', $request->input('email'))->first();
+            $user = User::query()->where('email', $request->input('email'))->first();
 
-            $user = User::where('email', $request->email)->first();
-
-            if ($user->email_verified_at) {
-                return ApiResponse::error('Email is already verified.', 400);
+            // Check if email has already been verified
+            if (!empty($user->email_verified_at)) {
+                return Helper::jsonErrorResponse('Email already verified.', 409);
             }
 
-            if (!$user) {
-                return ApiResponse::error('User not found', 404);
+            // Check if OTP matches
+            if ((string)$user->otp !== (string)$request->input('otp')) {
+                return Helper::jsonErrorResponse('Invalid OTP code', 422);
             }
 
-            $isVerified = OtpService::verifyOtp($request->email, $request->otp);
-
-            if (!$isVerified) {
-                return ApiResponse::error('Invalid OTP', 400);
+            // Check if OTP has expired
+            if (Carbon::parse($user->otp_expires_at)->isPast()) {
+                return Helper::jsonErrorResponse('OTP has expired. Please request a new OTP.', 422);
             }
 
-            $user->markEmailAsVerified();
+            // Verify the email
+            $user->email_verified_at = now();
+            $user->otp = null;
+            $user->otp_expires_at = null;
+            $user->save();
 
             // Generate the token
             $token = auth('api')->login($user);
@@ -177,7 +110,7 @@ class RegisterController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
         try {
-            $user = User::where('email', $request->input('email'))->first();
+            $user = User::query()->where('email', $request->input('email'))->first();
             if (!$user) {
                 return Helper::jsonErrorResponse('User not found.', 404);
             }
@@ -191,7 +124,7 @@ class RegisterController extends Controller
             $user->otp = $newOtp;
             $user->otp_expires_at = $otpExpiresAt;
             $user->save();
-            Mail::to($user->email)->send(new OtpMail($newOtp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->send(new OtpMail($newOtp));
 
             return Helper::jsonResponse(true, 'A new OTP has been sent to your email.', 200);
         } catch (Exception $e) {

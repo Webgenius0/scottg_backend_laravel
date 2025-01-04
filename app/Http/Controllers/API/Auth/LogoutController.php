@@ -11,11 +11,15 @@ use Exception;
 
 class LogoutController extends Controller
 {
-    public function logout()
+    public function logout(): \Illuminate\Http\JsonResponse
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken());
-            return ApiResponse::success('Successfully logged out');
+            if (Auth::check('api')) {
+                Auth::logout('api');
+                return Helper::jsonResponse(true, 'Logged out successfully. Token revoked.', 200);
+            }
+
+            return Helper::jsonErrorResponse( 'User not authenticated', 401);
         } catch (Exception $e) {
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }

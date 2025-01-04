@@ -11,6 +11,7 @@ use Exception;
 
 class LogoutController extends Controller
 {
+<<<<<<< HEAD
     public function logout(): \Illuminate\Http\JsonResponse
     {
         try {
@@ -20,6 +21,13 @@ class LogoutController extends Controller
             }
 
             return Helper::jsonErrorResponse( 'User not authenticated', 401);
+=======
+    public function logout()
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return ApiResponse::success('Successfully logged out');
+>>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
         } catch (Exception $e) {
             return Helper::jsonErrorResponse($e->getMessage(), 500);
         }

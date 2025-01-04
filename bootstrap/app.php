@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
+<<<<<<< HEAD
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*')) {
                 if ($e instanceof ValidationException) {
@@ -43,4 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return null;
         });
+=======
+
+>>>>>>> 6d8083fa8e0dd2279f7db1cb40c7d7b423c086b7
     })->create();

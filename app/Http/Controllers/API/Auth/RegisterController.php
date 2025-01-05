@@ -39,7 +39,8 @@ class RegisterController extends Controller
             ]);
 
             // Send OTP email
-            Mail::to($user->email)->send(new OtpMail($otp));
+            
+            Mail::to($user->email)->send(new OtpMail($otp, $user));
             return response()->json([
                 'status' => true,
                 'message' => 'User successfully registered. Please verify your email to log in.',
@@ -124,7 +125,7 @@ class RegisterController extends Controller
             $user->otp = $newOtp;
             $user->otp_expires_at = $otpExpiresAt;
             $user->save();
-            Mail::to($user->email)->send(new OtpMail($newOtp));
+            Mail::to($user->email)->send(new OtpMail($newOtp, $user));
 
             return Helper::jsonResponse(true, 'A new OTP has been sent to your email.', 200);
         } catch (Exception $e) {

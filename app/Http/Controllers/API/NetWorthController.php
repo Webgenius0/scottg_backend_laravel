@@ -7,5 +7,12 @@ use Illuminate\Http\Request;
 
 class NetWorthController extends Controller
 {
-    //
+    
+    public function index()
+    {
+
+        
+
+    }
+
 }

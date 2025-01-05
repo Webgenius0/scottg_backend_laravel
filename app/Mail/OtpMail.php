@@ -14,14 +14,16 @@ class OtpMail extends Mailable
     use Queueable, SerializesModels;
 
     public $otp;
+    public $user;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($otp)
+    public function __construct($otp, $user)
     {
 
         $this->otp = $otp;
+        $this->user = $user;
 
     }
 

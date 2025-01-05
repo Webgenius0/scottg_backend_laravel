@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Budget;
+use App\Models\NetWorth;
 use App\Observers\BudgetObserver;
+use App\Observers\NetWorthObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
     {
         
         Budget::observe(BudgetObserver::class);
+        // Register the NetWorthObserver
+        NetWorth::observe(NetWorthObserver::class);
 
     }
 }

@@ -50,12 +50,12 @@
   <div class="email-container">
     <div class="header">Your OTP Code</div>
     <div class="message">
-      Dear [User's Name],<br><br>
+      Dear {{ $user->first_name }},<br><br>
       To complete your verification process, please use the following OTP code:
     </div>
     <div class="otp">{{ $otp }}</div>
     <div class="message">
-      This OTP is valid for 10 minutes. If you did not request this code, please ignore this email.
+      This OTP is valid for 60 minutes. If you did not request this code, please ignore this email.
     </div>
     <div class="footer">
       Thank you for choosing our service.<br>

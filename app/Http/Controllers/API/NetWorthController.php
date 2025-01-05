@@ -87,7 +87,7 @@ class NetWorthController extends Controller
 
             // Validate request
             $request->validate([
-                'type' => 'required|string|in:liquid assets,taxable financial assets,tax-deferred assets,tax-free assets,other assets,liability',
+                'type' => 'required|string|in:liquid assets,taxable financial assets,tax-deferred assets,tax-free assets,other assets,liability,out of estate',
                 'name' => 'required|string|max:255',
                 'institution' => 'nullable|string|max:255',
                 'notes' => 'nullable|string',

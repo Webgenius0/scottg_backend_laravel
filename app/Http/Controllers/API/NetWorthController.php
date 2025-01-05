@@ -89,7 +89,7 @@ class NetWorthController extends Controller
             $request->validate([
                 'type' => 'required|string|in:liquid assets,taxable financial assets,tax-deferred assets,tax-free assets,other assets,liability',
                 'name' => 'required|string|max:255',
-                'institution' => 'required|string|max:255',
+                'institution' => 'nullable|string|max:255',
                 'notes' => 'nullable|string',
                 'year' => 'required|numeric',
                 'jan' => 'nullable|numeric',
@@ -109,26 +109,22 @@ class NetWorthController extends Controller
 
 
             // Create net worth record
-            $netWorth = NetWorth::create([
+            $netWorth = NetWorth::firstOrNew([
                 'user_id' => auth()->user()->id,
                 'type' => $request->input('type'),
                 'name' => $request->input('name'),
                 'institution' => $request->input('institution'),
-                'notes' => $request->input('notes'),
                 'year' => $request->input('year'),
-                'jan' => $request->input('jan'),
-                'feb' => $request->input('feb'),
-                'mar' => $request->input('mar'),
-                'apr' => $request->input('apr'),
-                'may' => $request->input('may'),
-                'jun' => $request->input('jun'),
-                'jul' => $request->input('jul'),
-                'aug' => $request->input('aug'),
-                'sep' => $request->input('sep'),
-                'oct' => $request->input('oct'),
-                'nov' => $request->input('nov'),
-                'dec' => $request->input('dec'),
             ]);
+            $netWorth->notes = $request->input('notes');
+
+            $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            foreach ($months as $month) {
+                if ($request->filled($month)) {
+                    $netWorth->{$month} = $request->input($month);
+                }
+            }
+            $netWorth->save();
 
             return response()->json([
                 'status' => true,
@@ -147,7 +143,7 @@ class NetWorthController extends Controller
     }
 
 
-    public function updateNetWorth(Request $request, $id)
+    /* public function updateNetWorth(Request $request, $id)
     {
         try {
             // Validate request
@@ -207,5 +203,5 @@ class NetWorthController extends Controller
                 'data' => [],
             ], 500);
         }
-    }
+    } */
 }

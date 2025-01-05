@@ -64,6 +64,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     //NetWorthController routes
     Route::controller(NetWorthController::class)->group(function () {
         Route::get('/net-worth', 'getNetWorth');
+        Route::post('/net-worth', 'storeNetWorth');
+        Route::put('/net-worth/{id}', 'updateNetWorth');
     });
 
 });

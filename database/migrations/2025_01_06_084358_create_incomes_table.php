@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('budgets', function (Blueprint $table) {
+        Schema::create('incomes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->integer('year')->nullable();
+            $table->string('month')->nullable();
             $table->string('type');
-            $table->string('name');
-            $table->decimal('monthly','10','2')->nullable();
-            $table->decimal('annual','10','2')->nullable();
+            $table->text('notes')->nullable();
+            $table->decimal('monthly_amount', 15, 2)->default(0);
+            $table->decimal('annual_amount', 15, 2)->default(0);
+            $table->decimal('percentage_total', 5, 2)->default(0);
             $table->timestamps();
         });
     }
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('budgets');
+        Schema::dropIfExists('incomes');
     }
 };

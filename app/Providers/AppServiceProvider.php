@@ -23,8 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
-        Budget::observe(BudgetObserver::class);
         // Register the NetWorthObserver
         NetWorth::observe(NetWorthObserver::class);
 

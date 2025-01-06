@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Budget;
-use App\Models\Category;
+use App\Models\Tax;
+use App\Models\Income;
+use App\Models\Saving;
+use App\Models\Expense;
 use App\Models\NetWorth;
 use App\Models\Transaction;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -104,26 +106,31 @@ class User extends Authenticatable implements JWTSubject
     }
     // Relationships
 
-    public function categories(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Category::class);
-    }
-
-    public function budgets(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Budget::class);
-    }
-
-    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Transaction::class);
-    }
-
     public function netWorth()
     {
 
         return $this->hasOne(NetWorth::class);
 
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function savings()
+    {
+        return $this->hasMany(Saving::class);
+    }
+
+    public function taxes()
+    {
+        return $this->hasMany(Tax::class);
     }
 
 }

@@ -29,6 +29,13 @@ class NetWorth extends Model
         'oct',
         'nov',
         'dec',
+        'net_worth',
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'net_worth',
     ];
 
     /**

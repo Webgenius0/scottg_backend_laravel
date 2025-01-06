@@ -17,7 +17,7 @@ class NetWorthController extends Controller
 
      * @return JsonResponse
      */
-    public function getNetWorth(): JsonResponse
+    /* public function getNetWorth(): JsonResponse
     {
         try {
 
@@ -37,6 +37,9 @@ class NetWorthController extends Controller
             // Calculate subtotal for liabilities
             $liabilitiesTotal = $this->calculateSubtotal($netWorths, 'liability');
 
+            // calculate subtotal for out of estate
+            $outOfEstateTotal = $this->calculateSubtotal($netWorths, 'out of estate');
+
             // Calculate net worth
             $netWorth = $assetsTotal - $liabilitiesTotal;
 
@@ -46,13 +49,16 @@ class NetWorthController extends Controller
                 'message' => 'Net worth calculated successfully',
                 'code' => 200,
                 'data' => [
-                    'liquid_assets_total' => $liquidAssetsTotal,
-                    'taxable_financial_assets_total' => $taxableFinancialAssetsTotal,
-                    'tax_deferred_assets_total' => $taxDeferredAssetsTotal,
-                    'tax_free_assets_total' => $taxFreeAssetsTotal,
-                    'other_assets_total' => $otherAssetsTotal,
+                    'liquid_assets_subTotal' => $liquidAssetsTotal,
+                    'taxable_financial_assets_subTotal' => $taxableFinancialAssetsTotal,
+                    'tax_deferred_assets_subTotal' => $taxDeferredAssetsTotal,
+                    'tax_free_assets_subTotal' => $taxFreeAssetsTotal,
+                    'other_assets_subTotal' => $otherAssetsTotal,
+                    'liabilities_subTotal' => $liabilitiesTotal,
+                    'out_of_estate_subTotal' => $outOfEstateTotal,
                     'assets_total' => $assetsTotal,
                     'liabilities_total' => $liabilitiesTotal,
+                    'out_of_estate_total' => $outOfEstateTotal,
                     'net_worth' => $netWorth,
                 ],
             ], 200);
@@ -64,7 +70,7 @@ class NetWorthController extends Controller
                 'data' => [],
             ], 500);
         }
-    }
+    } */
 
     /**
      * Calculate the subtotal for a specific type.
@@ -73,13 +79,73 @@ class NetWorthController extends Controller
      * @param string $type
      * @return float
      */
-    private function calculateSubtotal($netWorths, string $type): float
+    /* private function calculateSubtotal($netWorths, string $type): float
     {
         return $netWorths->where('type', $type)->sum(function ($record) {
             return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
                 $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
         });
+    } */
+
+
+    public function getNetWorth(): JsonResponse
+    {
+        try {
+            // Group net worth records by year
+            $netWorths = NetWorth::where('user_id', auth()->user()->id)->get()->groupBy('year');
+
+            $result = [];
+            foreach ($netWorths as $year => $records) {
+                $liquidAssetsTotal = $this->calculateSubtotal($records, 'liquid assets');
+                $taxableFinancialAssetsTotal = $this->calculateSubtotal($records, 'taxable financial assets');
+                $taxDeferredAssetsTotal = $this->calculateSubtotal($records, 'tax-deferred assets');
+                $taxFreeAssetsTotal = $this->calculateSubtotal($records, 'tax-free assets');
+                $otherAssetsTotal = $this->calculateSubtotal($records, 'other assets');
+                $liabilitiesTotal = $this->calculateSubtotal($records, 'liability');
+                $outOfEstateTotal = $this->calculateSubtotal($records, 'out of estate');
+                $assetsTotal = $liquidAssetsTotal + $taxableFinancialAssetsTotal + $taxDeferredAssetsTotal +
+                    $taxFreeAssetsTotal + $otherAssetsTotal;
+                $netWorth = $assetsTotal - $liabilitiesTotal;
+
+                $result[$year] = [
+                    'liquid_assets_subTotal' => $liquidAssetsTotal,
+                    'taxable_financial_assets_subTotal' => $taxableFinancialAssetsTotal,
+                    'tax_deferred_assets_subTotal' => $taxDeferredAssetsTotal,
+                    'tax_free_assets_subTotal' => $taxFreeAssetsTotal,
+                    'other_assets_subTotal' => $otherAssetsTotal,
+                    'liabilities_subTotal' => $liabilitiesTotal,
+                    'out_of_estate_subTotal' => $outOfEstateTotal,
+                    'assets_total' => $assetsTotal,
+                    'liabilities_total' => $liabilitiesTotal,
+                    'out_of_estate_total' => $outOfEstateTotal,
+                    'net_worth' => $netWorth,
+                ];
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Net worth calculated successfully',
+                'code' => 200,
+                'data' => $result,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'code' => 500,
+                'data' => [],
+            ], 500);
+        }
     }
+
+    protected function calculateSubtotal($records, $type)
+    {
+        return $records->where('type', $type)->sum(function ($record) {
+            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
+                $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
+        });
+    }
+
 
     public function storeNetWorth(Request $request)
     {

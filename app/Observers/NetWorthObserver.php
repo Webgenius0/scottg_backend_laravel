@@ -6,73 +6,60 @@ use App\Models\NetWorth;
 
 class NetWorthObserver
 {
-    /**
-     * Handle the created or updated event.
-     */
     public function saved(NetWorth $netWorth)
     {
         $this->updateNetWorth($netWorth->user_id);
     }
 
-    /**
-     * Handle the deleted event.
-     */
     public function deleted(NetWorth $netWorth)
     {
         $this->updateNetWorth($netWorth->user_id);
     }
 
-    /**
-     * Update total assets, liabilities, and net worth for the user.
-     */
     protected function updateNetWorth($userId)
     {
-        // Get all net worth records for the user
-        $netWorths = NetWorth::where('user_id', $userId)->get();
+        // Group net worth records by year
+        $netWorths = NetWorth::where('user_id', $userId)->get()->groupBy('year');
 
-        // Calculate subtotal for liquid assets
-        $liquidAssetsTotal = $netWorths->where('type', 'liquid assets')->sum(function ($record) {
+        foreach ($netWorths as $year => $records) {
+            $assetsTotal = $this->calculateAssetTotals($records);
+            $liabilitiesTotal = $this->calculateSubtotal($records, 'liability');
+
+            // Calculate net worth for the year
+            $netWorthForYear = $assetsTotal - $liabilitiesTotal;
+
+            // Update net worth in the database
+            NetWorth::where('user_id', $userId)->where('year', $year)->update([
+                'net_worth' => $netWorthForYear,
+            ]);
+        }
+    }
+
+    protected function calculateAssetTotals($records)
+    {
+        $types = [
+            'liquid assets',
+            'taxable financial assets',
+            'tax-deferred assets',
+            'tax-free assets',
+            'other assets',
+        ];
+
+        $total = 0;
+        foreach ($types as $type) {
+            $total += $this->calculateSubtotal($records, $type);
+        }
+
+        return $total;
+    }
+
+    protected function calculateSubtotal($records, $type)
+    {
+        return $records->where('type', $type)->sum(function ($record) {
             return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
                    $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
         });
-
-        // Calculate subtotal for taxable financial assets
-        $taxableFinancialAssetsTotal = $netWorths->where('type', 'taxable financial assets')->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-
-        // calculate tax-deferred assets
-        $taxDeferredAssetsTotal = $netWorths->where('type', 'tax-deferred assets')->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-        
-        // calculate tax-free assets
-        $taxFreeAssetsTotal = $netWorths->where('type', 'tax-free assets')->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-
-        // calculate other assets
-        $otherAssetsTotal = $netWorths->where('type', 'other assets')->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-
-        // Calculate total assets
-        $assetsTotal = $liquidAssetsTotal + $taxableFinancialAssetsTotal + $taxDeferredAssetsTotal + $taxFreeAssetsTotal + $otherAssetsTotal;
-
-        // Calculate subtotal for liabilities
-        $liabilitiesTotal = $netWorths->where('type', 'liability')->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-
-        // Update the net worth in the database
-        NetWorth::where('user_id', $userId)->update([
-            'net_worth' => $assetsTotal - $liabilitiesTotal,
-        ]);
     }
 }
+
 

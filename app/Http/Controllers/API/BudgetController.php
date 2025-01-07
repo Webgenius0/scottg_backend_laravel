@@ -14,270 +14,134 @@ use App\Http\Controllers\Controller;
 
 class BudgetController extends Controller
 {
-
     public function getTotals(Request $request)
     {
         try {
-
             $validated = $request->validate([
                 'year' => 'required|integer',
                 'month' => 'required|string',
             ]);
 
-            $incomeTotals = Income::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as total_percentage')
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->groupBy('year')
-                ->first();
+            $data = [
+                'incomes' => $this->getTotalsByModel(Income::class, $validated),
+                'expenses' => $this->getTotalsByModel(Expense::class, $validated),
+                'subtotal_expenses' => $this->getTotalsByType(Expense::class, $validated),
+                'savings' => $this->getTotalsByModel(Saving::class, $validated),
+                'taxes' => $this->getTotalsByModel(Tax::class, $validated),
+            ];
 
-            $expenseTotals = Expense::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as total_percentage')
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->groupBy('year')
-                ->first();
+            // Calculations
+            $grossIncome = $data['incomes']->total_annual ?? 0;
+            $totalExpenses = $data['expenses']->total_annual ?? 0;
+            $totalTaxes = $data['taxes']->total_annual ?? 0;
+            $netIncome = $grossIncome - $totalTaxes - $totalExpenses;
+            $yearlyExcessShortfall = $grossIncome - ($totalExpenses + $totalTaxes);
+            $monthlyExcessShortfall = $yearlyExcessShortfall / 12;
 
-            $expenseTotalsByType = Expense::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as total_percentage')
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->groupBy( 'type')
-                ->get();
+            // Add to response
+            $data['gross_income'] = $grossIncome;
+            $data['net_income'] = $netIncome;
+            $data['total_expenses'] = $totalExpenses;
+            $data['yearly_excess_shortfall'] = $yearlyExcessShortfall;
+            $data['monthly_excess_shortfall'] = $monthlyExcessShortfall;
 
-            $savingTotals = Saving::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as total_percentage')
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->groupBy('year')
-                ->first();
-
-            $taxTotals = Tax::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as total_percentage')
-                ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
-                ->groupBy('year')
-                ->first();
-
-            return response()->json([
-                'incomes' => $incomeTotals,
-                'expenses' => $expenseTotals,
-                'subtotal_expenses' => $expenseTotalsByType,
-                'savings' => $savingTotals,
-                'taxes' => $taxTotals,
-            ]);
+            return response()->json($data);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-    /**
-     * Store or update an income record.
-     */
     public function saveIncome(Request $request)
     {
-        try {
-
-            if ($request->monthly_amount && $request->annual_amount) {
-                return response()->json([
-                    'error' => 'You can only enter either monthly or annual amount'
-                ], 400);
-            }
-
-            $validated = $request->validate([
-                'type' => 'required|string',
-                'notes' => 'nullable|string',
-                'monthly_amount' => 'nullable|numeric',
-                'annual_amount' => 'nullable|numeric',
-            ]);
-
-            // Set year and month automatically
-            $currentDate = Carbon::now();
-            $validated['year'] = $currentDate->year;
-            $validated['month'] = $currentDate->format('M');
-
-            DB::beginTransaction();
-
-            try {
-                $income = Income::updateOrCreate(
-                    ['user_id' => auth()->id(), 'year' => $validated['year'], 'month' => $validated['month'], 'type' => $validated['type']],
-                    array_merge($validated, $this->calculateAmounts($validated))
-                );
-
-                $this->updatePercentages(Income::class, $income->user_id);
-
-                DB::commit();
-
-                return response()->json($income, 200);
-            } catch (Exception $e) {
-                DB::rollBack();
-
-                return response()->json([
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return $this->saveRecord(Income::class, $request);
     }
 
-    /**
-     * Store or update an expense record.
-     */
     public function saveExpense(Request $request)
     {
-        try {
-
-            if ($request->monthly_amount && $request->annual_amount) {
-                return response()->json([
-                    'error' => 'You can only enter either monthly or annual amount'
-                ], 400);
-            }
-
-            $validated = $request->validate([
-                'type' => 'required|string',
-                'name' => 'required|string',
-                'notes' => 'nullable|string',
-                'monthly_amount' => 'nullable|numeric',
-                'annual_amount' => 'nullable|numeric',
-            ]);
-
-            // Set year and month automatically
-            $currentDate = Carbon::now();
-            $validated['year'] = $currentDate->year;
-            $validated['month'] = $currentDate->format('M');
-
-            DB::beginTransaction();
-
-            try {
-
-                $expense = Expense::updateOrCreate(
-                    ['user_id' => auth()->id(), 'year' => $validated['year'], 'month' => $validated['month'], 'type' => $validated['type'], 'name' => $validated['name']],
-                    array_merge($validated, $this->calculateAmounts($validated))
-                );
-
-                $this->updatePercentages(Expense::class, $expense->user_id);
-
-                DB::commit();
-
-                return response()->json($expense, 200);
-            } catch (Exception $e) {
-                DB::rollBack();
-
-                return response()->json([
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return $this->saveRecord(Expense::class, $request, ['name' => 'required|string']);
     }
 
-    /**
-     * Store or update a saving record.
-     */
     public function saveSaving(Request $request)
     {
-        try {
+        return $this->saveRecord(Saving::class, $request);
+    }
 
+    public function saveTax(Request $request)
+    {
+        return $this->saveRecord(Tax::class, $request);
+    }
+
+    /**
+     * Generic method to save a record.
+     */
+    private function saveRecord($model, Request $request, array $extraRules = [])
+    {
+        try {
             if ($request->monthly_amount && $request->annual_amount) {
-                return response()->json([
-                    'error' => 'You can only enter either monthly or annual amount'
-                ], 400);
+                return response()->json(['error' => 'You can only enter either monthly or annual amount'], 400);
             }
 
-            $validated = $request->validate([
+            $rules = array_merge([
                 'type' => 'required|string',
                 'notes' => 'nullable|string',
                 'monthly_amount' => 'nullable|numeric',
                 'annual_amount' => 'nullable|numeric',
-            ]);
+            ], $extraRules);
 
-            // Set year and month automatically
+            $validated = $request->validate($rules);
+
             $currentDate = Carbon::now();
             $validated['year'] = $currentDate->year;
             $validated['month'] = $currentDate->format('M');
 
             DB::beginTransaction();
 
-            try {
-                $saving = Saving::updateOrCreate(
-                    ['user_id' => auth()->id(), 'year' => $validated['year'], 'month' => $validated['month'], 'type' => $validated['type']],
-                    array_merge($validated, $this->calculateAmounts($validated))
-                );
+            $record = $model::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'year' => $validated['year'],
+                    'month' => $validated['month'],
+                    'type' => $validated['type'],
+                ] + (isset($validated['name']) ? ['name' => $validated['name']] : []),
+                array_merge($validated, $this->calculateAmounts($validated))
+            );
 
-                $this->updatePercentages(Saving::class, $saving->user_id);
+            $this->updatePercentages($model, $record->user_id);
 
-                DB::commit();
+            // Fetch the updated record from the database
+            $freshRecord = $model::find($record->id);
 
-                return response()->json($saving, 200);
-            } catch (Exception $e) {
-                DB::rollBack();
+            DB::commit();
 
-                return response()->json([
-                    'error' => $e->getMessage()
-                ], 500);
-            }
+            return response()->json($freshRecord, 200);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Store or update a tax record.
+     * Fetch totals by model.
      */
-    public function saveTax(Request $request)
+    private function getTotalsByModel($model, $validated)
     {
-        try {
+        return $model::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('year')
+            ->first();
+    }
 
-            if ($request->monthly_amount && $request->annual_amount) {
-                return response()->json([
-                    'error' => 'You can only enter either monthly or annual amount'
-                ], 400);
-            }
-
-            $validated = $request->validate([
-                'type' => 'required|string',
-                'notes' => 'nullable|string',
-                'monthly_amount' => 'nullable|numeric',
-                'annual_amount' => 'nullable|numeric',
-            ]);
-
-            // Set year and month automatically
-            $currentDate = Carbon::now();
-            $validated['year'] = $currentDate->year;
-            $validated['month'] = $currentDate->format('M');
-
-            DB::beginTransaction();
-
-            try {
-
-                $tax = Tax::updateOrCreate(
-                    ['user_id' => auth()->id(), 'year' => $validated['year'], 'month' => $validated['month'], 'type' => $validated['type']],
-                    array_merge($validated, $this->calculateAmounts($validated))
-                );
-
-                $this->updatePercentages(Tax::class, $tax->user_id);
-
-                DB::commit();
-
-                return response()->json($tax, 200);
-            } catch (Exception $e) {
-                DB::rollBack();
-
-                return response()->json([
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-        } catch (Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    /**
+     * Fetch totals by type.
+     */
+    private function getTotalsByType($model, $validated)
+    {
+        return $model::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('type')
+            ->get();
     }
 
     /**
@@ -286,30 +150,23 @@ class BudgetController extends Controller
     private function calculateAmounts($data)
     {
         $calculated = [];
-        if (isset($data['monthly_amount']) && $data['monthly_amount'] > 0) {
+        if (!empty($data['monthly_amount'])) {
             $calculated['annual_amount'] = $data['monthly_amount'] * 12;
-        } elseif (isset($data['annual_amount']) && $data['annual_amount'] > 0) {
+        } elseif (!empty($data['annual_amount'])) {
             $calculated['monthly_amount'] = $data['annual_amount'] / 12;
         }
-
         return $calculated;
     }
 
     /**
-     * Update percentage_total for incomes or expenses.
+     * Update percentages.
      */
     private function updatePercentages($model, $userId)
     {
-        $records = $model::where('user_id', $userId)->get();
-        $totalMonthly = $records->sum('monthly_amount');
-        $totalAnnual = $records->sum('annual_amount');
+        $totals = $model::where('user_id', $userId)->sum('annual_amount');
 
-        foreach ($records as $record) {
-            $record->update([
-                'percentage_total' => $totalMonthly > 0
-                    ? ($record->monthly_amount / $totalMonthly) * 100
-                    : 0,
-            ]);
-        }
+        $model::where('user_id', $userId)->each(function ($record) use ($totals) {
+            $record->update(['percentage_total' => $totals > 0 ? ($record->annual_amount / $totals) * 100 : 0]);
+        });
     }
 }

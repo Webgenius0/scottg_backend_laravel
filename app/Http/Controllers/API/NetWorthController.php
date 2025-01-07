@@ -72,21 +72,6 @@ class NetWorthController extends Controller
         }
     } */
 
-    /**
-     * Calculate the subtotal for a specific type.
-     *
-     * @param \Illuminate\Database\Eloquent\Collection $netWorths
-     * @param string $type
-     * @return float
-     */
-    /* private function calculateSubtotal($netWorths, string $type): float
-    {
-        return $netWorths->where('type', $type)->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
-        });
-    } */
-
 
     public function getNetWorth(): JsonResponse
     {
@@ -126,7 +111,7 @@ class NetWorthController extends Controller
                 'status' => true,
                 'message' => 'Net worth calculated successfully',
                 'code' => 200,
-                'data' => $result,
+                'data' => [$netWorths, $result],
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -147,16 +132,16 @@ class NetWorthController extends Controller
     }
 
 
+
     public function storeNetWorth(Request $request)
     {
         try {
-
             // Validate request
             $request->validate([
                 'type' => 'required|string|in:liquid assets,taxable financial assets,tax-deferred assets,tax-free assets,other assets,liability,out of estate',
                 'name' => 'required|string|max:255',
-                'institution' => 'nullable|string|max:255',
-                'notes' => 'nullable|string',
+                'institution' => 'nullable|string',
+                'notes' => 'nullable',
                 'year' => 'required|numeric',
                 'jan' => 'nullable|numeric',
                 'feb' => 'nullable|numeric',
@@ -172,17 +157,32 @@ class NetWorthController extends Controller
                 'dec' => 'nullable|numeric',
             ]);
 
+            // Custom validation for unique name and institution combination
+            $duplicateRecord = NetWorth::where([
+                ['user_id', auth()->id()],
+                ['year', $request->year],
+                ['type', $request->type],
+                ['name', $request->name],
+                ['institution', $request->institution],
+            ])->exists();
 
+            if ($duplicateRecord) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Duplicate record found',
+                    'code' => 422,
+                    'data' => [],
+                ], 422);
+            }
 
             // Create net worth record
-            $netWorth = NetWorth::firstOrNew([
+            $netWorth = NetWorth::create([
                 'user_id' => auth()->user()->id,
                 'type' => $request->input('type'),
                 'name' => $request->input('name'),
                 'institution' => $request->input('institution'),
                 'year' => $request->input('year'),
             ]);
-            $netWorth->notes = $request->input('notes');
 
             $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
             foreach ($months as $month) {
@@ -190,6 +190,9 @@ class NetWorthController extends Controller
                     $netWorth->{$month} = $request->input($month);
                 }
             }
+
+            $netWorth->notes = $request->input('notes');
+
             $netWorth->save();
 
             return response()->json([
@@ -209,7 +212,7 @@ class NetWorthController extends Controller
     }
 
 
-    /* public function updateNetWorth(Request $request, $id)
+    public function updateNetWorth(Request $request, $id)
     {
         try {
             // Validate request
@@ -235,25 +238,21 @@ class NetWorthController extends Controller
 
             // Update net worth record
             $netWorth = NetWorth::where('user_id', auth()->user()->id)->findOrFail($id);
-            $netWorth->update([
-                'type' => $request->input('type'),
-                'name' => $request->input('name'),
-                'institution' => $request->input('institution'),
-                'notes' => $request->input('notes'),
-                'year' => $request->input('year'),
-                'jan' => $request->input('jan'),
-                'feb' => $request->input('feb'),
-                'mar' => $request->input('mar'),
-                'apr' => $request->input('apr'),
-                'may' => $request->input('may'),
-                'jun' => $request->input('jun'),
-                'jul' => $request->input('jul'),
-                'aug' => $request->input('aug'),
-                'sep' => $request->input('sep'),
-                'oct' => $request->input('oct'),
-                'nov' => $request->input('nov'),
-                'dec' => $request->input('dec'),
-            ]);
+
+            $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            foreach ($months as $month) {
+                if ($request->filled($month)) {
+                    $netWorth->{$month} = $request->input($month);
+                }
+            }
+
+            $netWorth->type = $request->input('type');
+            $netWorth->name = $request->input('name');
+            $netWorth->institution = $request->input('institution');
+            $netWorth->notes = $request->input('notes');
+            $netWorth->year = $request->input('year');
+
+            $netWorth->save();
 
             return response()->json([
                 'status' => true,
@@ -269,5 +268,5 @@ class NetWorthController extends Controller
                 'data' => [],
             ], 500);
         }
-    } */
+    }
 }

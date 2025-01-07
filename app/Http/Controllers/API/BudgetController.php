@@ -30,20 +30,44 @@ class BudgetController extends Controller
                 'taxes' => $this->getTotalsByModel(Tax::class, $validated),
             ];
 
+            // Fetch individual records for incomes, expenses, savings, and taxes
+            $data['incomes_records'] = Income::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get();
+
+            $data['expenses_records'] = Expense::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'name', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get();
+
+            $data['savings_records'] = Saving::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get();
+
+            $data['taxes_records'] = Tax::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get();
+
             // Calculations
             $grossIncome = $data['incomes']->total_annual ?? 0;
             $totalExpenses = $data['expenses']->total_annual ?? 0;
+            $totalSavings = $data['savings']->total_annual ?? 0;
             $totalTaxes = $data['taxes']->total_annual ?? 0;
-            $netIncome = $grossIncome - $totalTaxes - $totalExpenses;
-            $yearlyExcessShortfall = $grossIncome - ($totalExpenses + $totalTaxes);
+            $netIncome = $grossIncome - ($totalSavings + $totalTaxes);
+            $yearlyExcessShortfall = $netIncome - $totalExpenses;
             $monthlyExcessShortfall = $yearlyExcessShortfall / 12;
 
             // Add to response
-            $data['gross_income'] = $grossIncome;
+            $data['gross_income'] = round($grossIncome, 2);
+            $data['total_savings'] = $totalSavings;
+            $data['total_taxes'] = $totalTaxes;
             $data['net_income'] = $netIncome;
             $data['total_expenses'] = $totalExpenses;
-            $data['yearly_excess_shortfall'] = $yearlyExcessShortfall;
-            $data['monthly_excess_shortfall'] = $monthlyExcessShortfall;
+            $data['yearly_excess_shortfall'] = round($yearlyExcessShortfall, 2);
+            $data['monthly_excess_shortfall'] = round($monthlyExcessShortfall, 2);
 
             return response()->json($data);
         } catch (Exception $e) {

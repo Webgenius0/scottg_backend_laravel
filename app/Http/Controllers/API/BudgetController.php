@@ -2,136 +2,171 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Budget;
-use App\Models\Category;
-use App\Helpers\ApiResponse;
+use Exception;
+use Carbon\Carbon;
+use App\Models\Tax;
+use App\Models\Income;
+use App\Models\Saving;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Exception;
 
 class BudgetController extends Controller
 {
-    
-    public function index(Request $request)
+    public function getTotals(Request $request)
     {
         try {
-            // Retrieve categories and budgets for the authenticated user
-            $categories = Category::whereHas('budgets', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-                ->with([
-                    'budgets' => function ($query) {
-                        $query->select('id', 'type', 'name', 'monthly', 'annual', 'category_id');
-                    }
-                ])
-                ->select('id', 'name', 'income_monthly', 'income_annual', 'expense_monthly', 'expense_annual', 'planned_savings_monthly', 'planned_savings_annual', 'taxes_monthly', 'taxes_annual')
-                ->paginate(10);
+            $validated = $request->validate([
+                'year' => 'required|integer',
+                'month' => 'required|string',
+            ]);
 
-            return ApiResponse::success('Categories and budgets retrieved successfully', $categories);
+            $data = [
+                'incomes' => $this->getTotalsByModel(Income::class, $validated),
+                'expenses' => $this->getTotalsByModel(Expense::class, $validated),
+                'subtotal_expenses' => $this->getTotalsByType(Expense::class, $validated),
+                'savings' => $this->getTotalsByModel(Saving::class, $validated),
+                'taxes' => $this->getTotalsByModel(Tax::class, $validated),
+            ];
+
+            // Calculations
+            $grossIncome = $data['incomes']->total_annual ?? 0;
+            $totalExpenses = $data['expenses']->total_annual ?? 0;
+            $totalTaxes = $data['taxes']->total_annual ?? 0;
+            $netIncome = $grossIncome - $totalTaxes - $totalExpenses;
+            $yearlyExcessShortfall = $grossIncome - ($totalExpenses + $totalTaxes);
+            $monthlyExcessShortfall = $yearlyExcessShortfall / 12;
+
+            // Add to response
+            $data['gross_income'] = $grossIncome;
+            $data['net_income'] = $netIncome;
+            $data['total_expenses'] = $totalExpenses;
+            $data['yearly_excess_shortfall'] = $yearlyExcessShortfall;
+            $data['monthly_excess_shortfall'] = $monthlyExcessShortfall;
+
+            return response()->json($data);
         } catch (Exception $e) {
-            return ApiResponse::error($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function store(Request $request)
+    public function saveIncome(Request $request)
     {
-        // Start a database transaction to ensure data integrity
-        DB::beginTransaction();
+        return $this->saveRecord(Income::class, $request);
+    }
 
+    public function saveExpense(Request $request)
+    {
+        return $this->saveRecord(Expense::class, $request, ['name' => 'required|string']);
+    }
+
+    public function saveSaving(Request $request)
+    {
+        return $this->saveRecord(Saving::class, $request);
+    }
+
+    public function saveTax(Request $request)
+    {
+        return $this->saveRecord(Tax::class, $request);
+    }
+
+    /**
+     * Generic method to save a record.
+     */
+    private function saveRecord($model, Request $request, array $extraRules = [])
+    {
         try {
-            $request->validate([
-                'type' => 'required|in:income,expense,planned savings,taxes',
-                'name' => 'required|string',
-                'monthly' => 'nullable|numeric',
-                'annual' => 'nullable|numeric',
-                'category_id' => 'required|exists:categories,id',
-            ]);
+            if ($request->monthly_amount && $request->annual_amount) {
+                return response()->json(['error' => 'You can only enter either monthly or annual amount'], 400);
+            }
 
-            $monthly = $request->monthly ?? ($request->annual / 12);
-            $annual = $request->annual ?? ($request->monthly * 12);
+            $rules = array_merge([
+                'type' => 'required|string',
+                'notes' => 'nullable|string',
+                'monthly_amount' => 'nullable|numeric',
+                'annual_amount' => 'nullable|numeric',
+            ], $extraRules);
 
-            $budget = Budget::create([
-                'user_id' => auth()->id(),
-                'category_id' => $request->category_id,
-                'type' => $request->type,
-                'name' => $request->name,
-                'monthly' => $monthly,
-                'annual' => $annual,
-            ]);
+            $validated = $request->validate($rules);
 
-            //commit the transaction if everything goes well
+            $currentDate = Carbon::now();
+            $validated['year'] = $currentDate->year;
+            $validated['month'] = $currentDate->format('M');
+
+            DB::beginTransaction();
+
+            $record = $model::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'year' => $validated['year'],
+                    'month' => $validated['month'],
+                    'type' => $validated['type'],
+                ] + (isset($validated['name']) ? ['name' => $validated['name']] : []),
+                array_merge($validated, $this->calculateAmounts($validated))
+            );
+
+            $this->updatePercentages($model, $record->user_id);
+
+            // Fetch the updated record from the database
+            $freshRecord = $model::find($record->id);
+
             DB::commit();
 
-            return ApiResponse::success('Budget created successfully', $budget);
+            return response()->json($freshRecord, 200);
         } catch (Exception $e) {
-            //rollback the transaction if something goes wrong
             DB::rollBack();
-            return ApiResponse::error($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Fetch totals by model.
+     */
+    private function getTotalsByModel($model, $validated)
     {
-
-        // Start a database transaction to ensure data integrity
-        DB::beginTransaction();
-
-        try {
-            $request->validate([
-                'type' => 'required|in:income,expense,planned savings,taxes',
-                'name' => 'required|string',
-                'monthly' => 'nullable|numeric',
-                'annual' => 'nullable|numeric',
-                'category_id' => 'required|exists:categories,id',
-            ]);
-
-            $budget = Budget::where('user_id', auth()->id())->findOrFail($id);
-
-            $monthly = $request->monthly ?? ($request->annual / 12);
-            $annual = $request->annual ?? ($request->monthly * 12);
-
-            $budget->update([
-                'category_id' => $request->category_id,
-                'type' => $request->type,
-                'name' => $request->name,
-                'monthly' => $monthly,
-                'annual' => $annual,
-            ]);
-
-            //commit the transaction if everything goes well
-            DB::commit();
-
-            return ApiResponse::success('Budget updated successfully', $budget);
-        } catch (Exception $e) {
-
-            //rollback the transaction if something goes wrong
-            DB::rollBack();
-
-            return ApiResponse::error($e->getMessage());
-        }
+        return $model::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('year')
+            ->first();
     }
 
-    public function destroy(Request $request, $id)
+    /**
+     * Fetch totals by type.
+     */
+    private function getTotalsByType($model, $validated)
     {
-        // Start a database transaction to ensure data integrity
-        DB::beginTransaction();
-
-        try {
-            $budget = Budget::where('user_id', auth()->id())->findOrFail($id);
-            $budget->delete();
-
-            //commit the transaction if everything goes well
-            DB::commit();
-
-            return ApiResponse::success('Budget deleted successfully');
-        } catch (Exception $e) {
-
-            //rollback the transaction if something goes wrong
-            DB::rollBack();
-
-            return ApiResponse::error($e->getMessage());
-        }
+        return $model::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('type')
+            ->get();
     }
 
+    /**
+     * Automatically calculate annual or monthly amounts.
+     */
+    private function calculateAmounts($data)
+    {
+        $calculated = [];
+        if (!empty($data['monthly_amount'])) {
+            $calculated['annual_amount'] = $data['monthly_amount'] * 12;
+        } elseif (!empty($data['annual_amount'])) {
+            $calculated['monthly_amount'] = $data['annual_amount'] / 12;
+        }
+        return $calculated;
+    }
+
+    /**
+     * Update percentages.
+     */
+    private function updatePercentages($model, $userId)
+    {
+        $totals = $model::where('user_id', $userId)->sum('annual_amount');
+
+        $model::where('user_id', $userId)->each(function ($record) use ($totals) {
+            $record->update(['percentage_total' => $totals > 0 ? ($record->annual_amount / $totals) * 100 : 0]);
+        });
+    }
 }

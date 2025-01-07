@@ -32,18 +32,13 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
     Route::post('/logout', [LogoutController::class, 'logout']);
 
-    // CategoryController routes
-    Route::controller(CategoryController::class)->group(function () {
-        Route::get('/categories', 'index');
-        Route::post('/categories', 'store');
-    });
-
     // BudgetController routes
     Route::controller(BudgetController::class)->group(function () {
-        Route::get('/budgets', 'index');
-        Route::post('/budgets', 'store');
-        Route::put('/budgets/{id}', 'update');
-        Route::delete('/budgets/{id}', 'destroy');
+        Route::get('/totals', 'getTotals');
+        Route::post('/incomes', 'saveIncome');
+        Route::post('/expenses', 'saveExpense');
+        Route::post('/savings', 'saveSaving');
+        Route::post('/taxes', 'saveTax');
     });
 
     // TransactionController routes
@@ -65,7 +60,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::controller(NetWorthController::class)->group(function () {
         Route::get('/net-worth', 'getNetWorth');
         Route::post('/net-worth', 'storeNetWorth');
-        Route::put('/net-worth/{id}', 'updateNetWorth');
+        Route::post('/net-worth/{id}', 'updateNetWorth');
     });
 
 });

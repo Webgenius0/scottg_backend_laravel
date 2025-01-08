@@ -73,11 +73,18 @@ class NetWorthController extends Controller
     } */
 
 
-    public function getNetWorth(): JsonResponse
+    public function getNetWorth(Request $request): JsonResponse
     {
         try {
+
+            $validated = $request->validate([
+                'year' => 'required|integer',
+            ]);
+
             // Group net worth records by year
-            $netWorths = NetWorth::where('user_id', auth()->user()->id)->get()->groupBy('year');
+            $netWorths = NetWorth::where('user_id', auth()->user()->id)
+            ->where('year', $validated['year'])
+            ->get()->groupBy('year');
 
             $result = [];
             foreach ($netWorths as $year => $records) {

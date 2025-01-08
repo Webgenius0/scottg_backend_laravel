@@ -56,16 +56,16 @@ class BudgetController extends Controller
             $totalExpenses = $data['expenses']->total_annual ?? 0;
             $totalSavings = $data['savings']->total_annual ?? 0;
             $totalTaxes = $data['taxes']->total_annual ?? 0;
-            $netIncome = $grossIncome - ($totalSavings + $totalTaxes);
-            $yearlyExcessShortfall = $netIncome - $totalExpenses;
+            $netIncome = $grossIncome - $totalTaxes;
+            $yearlyExcessShortfall = $netIncome - ($totalExpenses + $totalSavings);
             $monthlyExcessShortfall = $yearlyExcessShortfall / 12;
 
             // Add to response
             $data['gross_income'] = round($grossIncome, 2);
-            $data['total_savings'] = $totalSavings;
             $data['total_taxes'] = $totalTaxes;
             $data['net_income'] = $netIncome;
             $data['total_expenses'] = $totalExpenses;
+            $data['total_savings'] = $totalSavings;
             $data['yearly_excess_shortfall'] = round($yearlyExcessShortfall, 2);
             $data['monthly_excess_shortfall'] = round($monthlyExcessShortfall, 2);
 

@@ -73,7 +73,7 @@ class NetWorthController extends Controller
     } */
 
 
-    public function getNetWorth(Request $request): JsonResponse
+    /* public function getNetWorth(Request $request): JsonResponse
     {
         try {
 
@@ -140,7 +140,111 @@ class NetWorthController extends Controller
             return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
                 $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
         });
+    } */
+
+
+
+    public function getNetWorth(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'year' => 'required|integer',
+            ]);
+
+            // Group net worth records by year and map by type
+            $netWorths = NetWorth::where('user_id', auth()->id())
+                ->where('year', $validated['year'])
+                ->get()
+                ->groupBy('year')
+                ->map(function ($records) {
+                    return $records->groupBy('type');
+                });
+
+            $result = [];
+            foreach ($netWorths as $year => $records) {
+                $totals = $this->calculateTotals($records);
+
+                $assetsTotal = array_sum([
+                    $totals['liquid_assets'],
+                    $totals['taxable_financial_assets'],
+                    $totals['tax_deferred_assets'],
+                    $totals['tax_free_assets'],
+                    $totals['other_assets'],
+                ]);
+
+                $netWorth = $assetsTotal - $totals['liabilities'];
+
+                $result[$year] = [
+                    'liquid_assets_subTotal' => $totals['liquid_assets'],
+                    'taxable_financial_assets_subTotal' => $totals['taxable_financial_assets'],
+                    'tax_deferred_assets_subTotal' => $totals['tax_deferred_assets'],
+                    'tax_free_assets_subTotal' => $totals['tax_free_assets'],
+                    'other_assets_subTotal' => $totals['other_assets'],
+                    'liabilities_subTotal' => $totals['liabilities'],
+                    'out_of_estate_subTotal' => $totals['out_of_estate'],
+                    'assets_total' => $assetsTotal,
+                    'liabilities_total' => $totals['liabilities'],
+                    'out_of_estate_total' => $totals['out_of_estate'],
+                    'net_worth' => $netWorth,
+                ];
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Net worth calculated successfully',
+                'code' => 200,
+                'data' => [$netWorths, $result],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'code' => 500,
+                'data' => [],
+            ], 500);
+        }
     }
+
+    protected function calculateTotals($records): array
+    {
+        $categories = [
+            'liquid assets' => 'liquid_assets',
+            'taxable financial assets' => 'taxable_financial_assets',
+            'tax-deferred assets' => 'tax_deferred_assets',
+            'tax-free assets' => 'tax_free_assets',
+            'other assets' => 'other_assets',
+            'liability' => 'liabilities',
+            'out of estate' => 'out_of_estate',
+        ];
+
+        $totals = [];
+        foreach ($categories as $type => $key) {
+            $totals[$key] = $this->calculateSubtotal($records, $type);
+        }
+
+        return $totals;
+    }
+
+    protected function calculateSubtotal($records, $type)
+    {
+        return $records->get($type, collect())->sum(function ($record) {
+            return collect([
+                'jan',
+                'feb',
+                'mar',
+                'apr',
+                'may',
+                'jun',
+                'jul',
+                'aug',
+                'sep',
+                'oct',
+                'nov',
+                'dec',
+            ])->sum(fn($month) => $record->$month);
+        });
+    }
+
 
 
 

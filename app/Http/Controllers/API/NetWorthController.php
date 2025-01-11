@@ -81,10 +81,14 @@ class NetWorthController extends Controller
                 'year' => 'required|integer',
             ]);
 
-            // Group net worth records by year
+            // Group net worth records by year and map by type
             $netWorths = NetWorth::where('user_id', auth()->user()->id)
             ->where('year', $validated['year'])
-            ->get()->groupBy('year');
+            ->get()->groupBy('year')->map(function ($records) {
+                
+                return $records->groupBy('type');
+
+            });
 
             $result = [];
             foreach ($netWorths as $year => $records) {

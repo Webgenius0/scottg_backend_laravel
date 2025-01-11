@@ -46,6 +46,7 @@ class BlogController extends Controller
                 ->select(['id', 'title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->get()
                 ->map(function ($blog) {
+                    $blog->content = strip_tags($blog->content);
                     $blog->image = asset($blog->image);
                     $blog->created_date = $blog->created_at->format('d M Y');
                     $blog->created_time = $blog->created_at->format('h:i A');
@@ -68,7 +69,7 @@ class BlogController extends Controller
                 ->select(['id', 'title', 'blog_category', 'slug', 'content', 'image', 'created_at', 'updated_at'])
                 ->firstOrFail();
 
-            $blog->content = strip_tags($blog->content);
+            // $blog->content = strip_tags($blog->content);
             $blog->image = asset($blog->image);
             $blog->created_date = $blog->created_at->format('d M Y');
             $blog->created_time = $blog->created_at->format('h:i A');

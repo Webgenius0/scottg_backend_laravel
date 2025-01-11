@@ -69,7 +69,14 @@ class BudgetController extends Controller
             $data['yearly_excess_shortfall'] = round($yearlyExcessShortfall, 2);
             $data['monthly_excess_shortfall'] = round($monthlyExcessShortfall, 2);
 
-            return response()->json($data);
+            return response()->json([
+
+                'status' => true,
+                'message' => 'Successfully fetched data',
+                'code' => 200,
+                'data' => $data
+
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

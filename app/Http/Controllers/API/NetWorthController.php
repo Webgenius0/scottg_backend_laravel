@@ -144,26 +144,6 @@ class NetWorthController extends Controller
                     return $grouped;
                 });
 
-
-            if ($netWorths->isEmpty()) {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'No records found',
-                    'code' => 200,
-                    'data' => [
-                        $validated['year'] => array_fill_keys([
-                            'liquid assets',
-                            'taxable financial assets',
-                            'tax-deferred assets',
-                            'tax-free assets',
-                            'other assets',
-                            'liability',
-                            'out of estate'
-                        ], []),
-                    ],
-                ], 200);
-            }
-
             $result = [];
             foreach ($netWorths as $year => $records) {
                 $totals = $this->calculateTotals($records);
@@ -191,6 +171,42 @@ class NetWorthController extends Controller
                     'out_of_estate_total' => $totals['out_of_estate'],
                     'net_worth' => $netWorth,
                 ];
+            }
+
+            if ($netWorths->isEmpty()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'No records found',
+                    'code' => 200,
+                    'data' => [
+                        [
+                            $validated['year'] => [
+                                'liquid assets' => [],
+                                'taxable financial assets' => [],
+                                'tax-deferred assets' => [],
+                                'tax-free assets' => [],
+                                'other assets' => [],
+                                'liability' => [],
+                                'out of estate' => []
+                            ]
+                        ],
+                        [
+                            $validated['year'] => [
+                                'liquid_assets_subTotal' => 0,
+                                'taxable_financial_assets_subTotal' => 0,
+                                'tax_deferred_assets_subTotal' => 0,
+                                'tax_free_assets_subTotal' => 0,
+                                'other_assets_subTotal' => 0,
+                                'liabilities_subTotal' => 0,
+                                'out_of_estate_subTotal' => 0,
+                                'assets_total' => 0,
+                                'liabilities_total' => 0,
+                                'out_of_estate_total' => 0,
+                                'net_worth' => 0
+                            ]
+                        ]
+                    ],
+                ], 200);
             }
 
             return response()->json([

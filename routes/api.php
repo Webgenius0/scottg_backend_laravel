@@ -41,14 +41,6 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::post('/taxes', 'saveTax');
     });
 
-    // TransactionController routes
-    Route::controller(TransactionController::class)->group(function () {
-        Route::get('/transactions', 'index');
-        Route::post('/transactions', 'store');
-        Route::put('/transactions/{id}', 'update');
-        Route::delete('/transactions/{id}', 'destroy');
-    });
-
     // BlogController routes
     Route::controller(BlogController::class)->group(function () {
         Route::get('/blogs', 'getActiveBlogs');
@@ -61,6 +53,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('/net-worth', 'getNetWorth');
         Route::post('/net-worth', 'storeNetWorth');
         Route::post('/net-worth/{id}', 'updateNetWorth');
+        Route::delete('/net-worth/{id}', 'destroyNetWorth');
     });
 
 });

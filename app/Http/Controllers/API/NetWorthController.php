@@ -147,9 +147,9 @@ class NetWorthController extends Controller
 
             if ($netWorths->isEmpty()) {
                 return response()->json([
-                    'status' => false,
+                    'status' => true,
                     'message' => 'No records found',
-                    'code' => 404,
+                    'code' => 200,
                     'data' => [
                         $validated['year'] => array_fill_keys([
                             'liquid assets',
@@ -161,7 +161,7 @@ class NetWorthController extends Controller
                             'out of estate'
                         ], []),
                     ],
-                ], 404);
+                ], 200);
             }
 
             $result = [];

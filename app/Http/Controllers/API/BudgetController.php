@@ -121,7 +121,7 @@ class BudgetController extends Controller
             // fetch records
             $records = $model::where('year', $validated['year'])
                 ->where('month', $validated['month'])
-                ->select('type', 'name', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->select('type', 'name', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get()
                 ->groupBy('type');
 
@@ -158,7 +158,7 @@ class BudgetController extends Controller
             // fetch records
             $records = $model::where('year', $validated['year'])
                 ->where('month', $validated['month'])
-                ->select('type', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->select('type', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get();
 
             return response()->json([
@@ -178,7 +178,7 @@ class BudgetController extends Controller
      */
     private function getTotalsByModel($model, $validated)
     {
-        return $model::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+        return $model::selectRaw('year, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('year', $validated['year'])
             ->where('month', $validated['month'])
             ->groupBy('year')
@@ -190,7 +190,7 @@ class BudgetController extends Controller
      */
     private function getTotalsByType($model, $validated)
     {
-        return $model::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+        return $model::selectRaw('type, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('year', $validated['year'])
             ->where('month', $validated['month'])
             ->groupBy('type')

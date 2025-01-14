@@ -19,19 +19,19 @@ return new class extends Migration
             $table->string('institution')->nullable(); // Optional
             $table->string('notes')->nullable(); // Optional notes
             $table->year('year'); // Year of the net worth
-            $table->decimal('jan', 15, 2)->nullable(); // Optional
-            $table->decimal('feb', 15, 2)->nullable(); // Optional
-            $table->decimal('mar', 15, 2)->nullable(); // Optional
-            $table->decimal('apr', 15, 2)->nullable(); // Optional
-            $table->decimal('may', 15, 2)->nullable(); // Optional
-            $table->decimal('jun', 15, 2)->nullable(); // Optional
-            $table->decimal('jul', 15, 2)->nullable(); // Optional
-            $table->decimal('aug', 15, 2)->nullable(); // Optional
-            $table->decimal('sep', 15, 2)->nullable(); // Optional
-            $table->decimal('oct', 15, 2)->nullable(); // Optional
-            $table->decimal('nov', 15, 2)->nullable(); // Optional
-            $table->decimal('dec', 15, 2)->nullable(); // Optional
-            $table->decimal('net_worth', 20, 2)->nullable(); // Optional
+            $table->decimal('jan', 15, 2)->default(0); 
+            $table->decimal('feb', 15, 2)->default(0); 
+            $table->decimal('mar', 15, 2)->default(0); 
+            $table->decimal('apr', 15, 2)->default(0); 
+            $table->decimal('may', 15, 2)->default(0); 
+            $table->decimal('jun', 15, 2)->default(0); 
+            $table->decimal('jul', 15, 2)->default(0); 
+            $table->decimal('aug', 15, 2)->default(0); 
+            $table->decimal('sep', 15, 2)->default(0); 
+            $table->decimal('oct', 15, 2)->default(0); 
+            $table->decimal('nov', 15, 2)->default(0); 
+            $table->decimal('dec', 15, 2)->default(0); 
+            $table->decimal('net_worth', 20, 2)->default(0); 
             $table->timestamps();
         });
     }

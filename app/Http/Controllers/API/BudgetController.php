@@ -14,7 +14,7 @@ use App\Http\Controllers\Controller;
 
 class BudgetController extends Controller
 {
-    public function getTotals(Request $request)
+    /* public function getTotals(Request $request)
     {
         try {
             $validated = $request->validate([
@@ -80,6 +80,121 @@ class BudgetController extends Controller
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    } */
+
+
+    public function getIncomes(Request $request)
+    {
+        return $this->getEntityTotals(Income::class, $request, 'incomes');
+    }
+
+    public function getExpenses(Request $request)
+    {
+        return $this->getEntityTotalsForExpense(Expense::class, $request, 'expenses');
+    }
+
+    public function getSavings(Request $request)
+    {
+        return $this->getEntityTotals(Saving::class, $request, 'savings');
+    }
+
+    public function getTaxes(Request $request)
+    {
+        return $this->getEntityTotals(Tax::class, $request, 'taxes');
+    }
+
+    private function getEntityTotalsForExpense($model, $request, $entityName)
+    {
+        
+        try {
+            $validated = $request->validate([
+                'year' => 'required|integer',
+                'month' => 'required|string|size:3',
+            ]);
+
+            // Fetch totals
+            $totals = $this->getTotalsByModel($model, $validated);
+
+            // Fetch sub totals
+            $subTotals = $this->getTotalsByType($model, $validated);
+
+            // fetch records
+            $records = $model::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'name', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get()
+                ->groupBy('type');
+
+            return response()->json([
+                'status' => true,
+                'message' => "Successfully fetched $entityName data",
+                'code' => 200,
+                'data' => [
+                    'totals' => $totals,
+                    'subtotals' => $subTotals,
+                    'records' => $records,
+                ]
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+    }
+
+    /**
+     * Generic method to fetch totals for a specific entity.
+     */
+    private function getEntityTotals($model, Request $request, $entityName)
+    {
+        try {
+            $validated = $request->validate([
+                'year' => 'required|integer',
+                'month' => 'required|string|size:3',
+            ]);
+
+            // Fetch totals
+            $totals = $this->getTotalsByModel($model, $validated);
+
+            // fetch records
+            $records = $model::where('year', $validated['year'])
+                ->where('month', $validated['month'])
+                ->select('type', 'monthly_amount', 'annual_amount', 'percentage_total')
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Successfully fetched $entityName data",
+                'code' => 200,
+                'totals' => $totals,
+                'records' => $records,
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Fetch totals by model.
+     */
+    private function getTotalsByModel($model, $validated)
+    {
+        return $model::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('year')
+            ->first();
+    }
+
+    /**
+     * Fetch totals by type.
+     */
+    private function getTotalsByType($model, $validated)
+    {
+        return $model::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
+            ->where('year', $validated['year'])
+            ->where('month', $validated['month'])
+            ->groupBy('type')
+            ->get();
     }
 
     public function saveIncome(Request $request)
@@ -144,35 +259,17 @@ class BudgetController extends Controller
 
             DB::commit();
 
-            return response()->json($freshRecord, 200);
+            return response()->json([
+
+                'success' => true,
+                'message' => 'Record saved successfully',
+                'code' => 200,
+                'record' => $freshRecord
+                ]);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Fetch totals by model.
-     */
-    private function getTotalsByModel($model, $validated)
-    {
-        return $model::selectRaw('year, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
-            ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
-            ->groupBy('year')
-            ->first();
-    }
-
-    /**
-     * Fetch totals by type.
-     */
-    private function getTotalsByType($model, $validated)
-    {
-        return $model::selectRaw('type, SUM(monthly_amount) as total_monthly, SUM(annual_amount) as total_annual, SUM(percentage_total) as percentage_of_total')
-            ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
-            ->groupBy('type')
-            ->get();
     }
 
     /**

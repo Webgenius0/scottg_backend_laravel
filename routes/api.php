@@ -34,7 +34,10 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // BudgetController routes
     Route::controller(BudgetController::class)->group(function () {
-        Route::get('/totals', 'getTotals');
+        Route::get('/get-incomes', 'getIncomes');
+        Route::get('/get-expenses', 'getExpenses');
+        Route::get('/get-savings', 'getSavings');
+        Route::get('/get-taxes', 'getTaxes');
         Route::post('/incomes', 'saveIncome');
         Route::post('/expenses', 'saveExpense');
         Route::post('/savings', 'saveSaving');

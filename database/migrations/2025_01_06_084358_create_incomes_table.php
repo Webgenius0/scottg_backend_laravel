@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('month')->nullable();
             $table->string('type');
             $table->text('notes')->nullable();
-            $table->decimal('monthly_amount', 15, 2)->default(0);
-            $table->decimal('annual_amount', 15, 2)->default(0);
-            $table->decimal('percentage_total', 5, 2)->default(0);
+            $table->string('monthly_amount', 15)->default(0);
+            $table->string('annual_amount', 15)->default(0);
+            $table->string('percentage_total', 5)->default(0);
             $table->timestamps();
         });
     }

@@ -37,25 +37,620 @@ class BudgetController extends Controller
 
     private function getEntityTotalsForExpense($model, $request, $entityName)
     {
-        
+
         try {
             $validated = $request->validate([
                 'year' => 'required|integer',
                 'month' => 'required|string|size:3',
             ]);
 
-            // Fetch totals
-            $totals = $this->getTotalsByModel($model, $validated);
+            $defaultItems = [
+                [
+                    'type' => 'Home',
+                    'name' => 'Mortgage/Rent',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Property Taxes',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Insurance - Home/Flood/Tenant',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Utilities - Electric/Gas/Water',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Communications - Telephone/Internet',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Home Repairs/Improvement',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Maintenance - Winter/Spring',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Lawncare/Garden',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Alarm',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Condo/Neighborhood Fees',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Housekeeping',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Furniture/Supplies/Misc.',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Home',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Auto Payment(s)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Auto Maintenance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Auto Excise Tax',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Auto Registration',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Auto Insurance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Parking',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Gas',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Bus/Rail Card Pass',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Uber/Taxis',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Transport',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Groceries',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Cell Phone',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Personal Care Items/Toiletries',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Clothing',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Hairdresser/Nails',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Household Supplies',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Dry Cleaners/Laundry',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Subscriptions - News, Music, TV, Apps, etc.',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Basic Living',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Travel',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Dining Out',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Entertainment/Hobbies',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Shopping/Amazon',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Fitness/Health Club/Personal Trainer',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Sports',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Country Club Fees',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Boat Expense',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Charity',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Political Contributions',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Gifts',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Discretionary',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Health Insurance Premium',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Dental Insurance Premium',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Vision Insurance Premium',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Co-pays/Deductibles',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Prescriptions (net of insurance)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Rehab/Therapy',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Other Medical Visits',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Medical',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Professional Fees',
+                    'name' => 'Tax Preparation',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Professional Fees',
+                    'name' => 'Legal',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Professional Fees',
+                    'name' => 'Financial Planning',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Professional Fees',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Insurance',
+                    'name' => 'Life Insurance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Insurance',
+                    'name' => 'Disability Insurance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Insurance',
+                    'name' => 'Umbrella Insurance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Insurance',
+                    'name' => 'Jewelry Insurance',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Insurance',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Daycare/Preschool',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'After School Fees',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Babysitting/Nanny',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Camps/Summer Programs',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Transport/Travel',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Toys/General Spending',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Private School Fees',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Activities - Sports, Music, After School',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Food (if not included above)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Clothing (if not included above)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Healthcare/Prescriptions (if not included above)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Kids',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Veterinarian',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Food/Prescriptions',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Boarding Charges',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Dog Walker',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Dog Grooming',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Pet',
+                    'name' => 'Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Debt Repayments',
+                    'name' => 'Student Loan Debt',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Debt Repayments',
+                    'name' => 'Credit Card Balance (if not paid off monthly)',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Debt Repayments',
+                    'name' => 'Home Equity Line of Credit',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'Debt Repayments',
+                    'name' => 'Other Debt',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+                [
+                    'type' => 'User  Defined Other',
+                    'name' => 'User  Defined Other',
+                    'monthly_amount' => 0,
+                    'annual_amount' => 0,
+                    'percentage_total' => 0,
+                ],
+            ];
 
-            // Fetch sub totals
-            $subTotals = $this->getTotalsByType($model, $validated);
-
-            // fetch records
+            // Fetch records from the database
             $records = $model::where('year', $validated['year'])
                 ->where('month', $validated['month'])
                 ->select('type', 'name', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get()
-                ->groupBy('type');
+                ->toArray();
+
+            // Merge defaults with existing records
+            $mergedRecords = collect($defaultItems)->map(function ($defaultItem) use ($records) {
+                $existingRecord = collect($records)->firstWhere('name', $defaultItem['name']);
+                return $existingRecord ?? $defaultItem;
+            });
+
+            // Fetch totals and subtotals
+            $totals = $this->getTotalsByModel($model, $validated);
+            $subTotals = $this->getTotalsByType($model, $validated);
 
             return response()->json([
                 'status' => true,
@@ -64,13 +659,12 @@ class BudgetController extends Controller
                 'data' => [
                     'totals' => $totals,
                     'subtotals' => $subTotals,
-                    'records' => $records,
+                    'records' => $mergedRecords->groupBy('type'),
                 ]
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-
     }
 
     /**
@@ -84,6 +678,105 @@ class BudgetController extends Controller
                 'month' => 'required|string|size:3',
             ]);
 
+            $defaultItems = match ($model) {
+                Income::class => [
+                    [
+                        'type' => 'W2 Income (1)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Bonus (1)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'W2 Income (2)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Bonus (2)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Other Income (1)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Other Income (2)',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                ],
+                Saving::class => [
+                    [
+                        'type' => '401k Contribution',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Education/529 Plan Contribution',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Individual IRA/Roth IRA Contribution',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'HSA Contribution',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Brokerage Contributions',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Specific Goal Based Savings',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                ],
+                Tax::class => [
+                    [
+                        'type' => 'Federal',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'State',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                    [
+                        'type' => 'Other',
+                        'monthly_amount' => 0,
+                        'annual_amount' => 0,
+                        'percentage_total' => 0,
+                    ],
+                ],
+            };
+
             // Fetch totals
             $totals = $this->getTotalsByModel($model, $validated);
 
@@ -93,12 +786,18 @@ class BudgetController extends Controller
                 ->select('type', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get();
 
+            // Merge defaults with existing records
+            $mergedRecords = collect($defaultItems)->map(function ($defaultItem) use ($records) {
+                $existingRecord = collect($records)->firstWhere('type', $defaultItem['type']);
+                return $existingRecord ?? $defaultItem;
+            });
+
             return response()->json([
                 'status' => true,
                 'message' => "Successfully fetched $entityName data",
                 'code' => 200,
                 'totals' => $totals,
-                'records' => $records,
+                'records' => $mergedRecords,
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -197,7 +896,7 @@ class BudgetController extends Controller
                 'message' => 'Record saved successfully',
                 'code' => 200,
                 'record' => $freshRecord
-                ]);
+            ]);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);

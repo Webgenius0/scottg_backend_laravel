@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('monthly_amount', 15)->default(0);
             $table->string('annual_amount', 15)->default(0);
-            $table->string('percentage_total', 5)->default(0);
+            $table->string('percentage_total')->default(0);
             $table->timestamps();
         });
     }

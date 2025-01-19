@@ -950,12 +950,17 @@ class BudgetController extends Controller
      */
     private function calculateAmounts($data)
     {
-        $calculated = [];
-        if (!empty($data['monthly_amount'])) {
-            $calculated['annual_amount'] = $data['monthly_amount'] * 12;
-        } elseif (!empty($data['annual_amount'])) {
-            $calculated['monthly_amount'] = $data['annual_amount'] / 12;
+        $calculated = [
+            'monthly_amount' => $data['monthly_amount'] ?? 0,
+            'annual_amount' => $data['annual_amount'] ?? 0
+        ];
+
+        if ($calculated['monthly_amount'] == 0 && $calculated['annual_amount'] > 0) {
+            $calculated['monthly_amount'] = $calculated['annual_amount'] / 12;
+        } elseif ($calculated['annual_amount'] == 0 && $calculated['monthly_amount'] > 0) {
+            $calculated['annual_amount'] = $calculated['monthly_amount'] * 12;
         }
+
         return $calculated;
     }
 

@@ -57,6 +57,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::post('/net-worth', 'storeNetWorth');
         Route::post('/net-worth/{id}', 'updateNetWorth');
         Route::delete('/net-worth/{id}', 'destroyNetWorth');
+        Route::delete('/bulk-delete-net-worth', 'bulkDeleteNetWorth');
     });
 
 });

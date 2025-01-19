@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
+use Exception;
 use App\Models\NetWorth;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Exception;
 
 class NetWorthController extends Controller
 {
@@ -409,7 +410,6 @@ class NetWorthController extends Controller
     public function destroyNetWorth($id)
     {
         try {
-            // Delete net worth record
             $netWorth = NetWorth::where('user_id', auth()->user()->id)->findOrFail($id);
             $netWorth->delete();
 
@@ -428,4 +428,39 @@ class NetWorthController extends Controller
             ], 500);
         }
     }
+
+    public function bulkDeleteNetWorth(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:net_worths,id',
+        ]);
+    
+        DB::beginTransaction();
+    
+        try {
+            $userId = auth()->user()->id;
+            $deletedCount = NetWorth::where('user_id', $userId)
+                ->whereIn('id', $request->ids)
+                ->delete();
+    
+            DB::commit();
+    
+            return response()->json([
+                'status' => true,
+                'message' => "{$deletedCount} net worth record(s) deleted successfully",
+                'code' => 200,
+                'data' => [],
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'code' => 500,
+                'data' => [],
+            ], 500);
+        }
+    }
+
 }

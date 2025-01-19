@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('dec', 15)->default(0); 
             $table->string('net_worth', 20)->default(0); 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -41,7 +41,7 @@ class BudgetController extends Controller
         try {
             $validated = $request->validate([
                 'year' => 'required|integer',
-                'month' => 'required|string|size:3',
+                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ]);
 
             $defaultItems = [
@@ -675,7 +675,7 @@ class BudgetController extends Controller
         try {
             $validated = $request->validate([
                 'year' => 'required|integer',
-                'month' => 'required|string|size:3',
+                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ]);
 
             $defaultItems = match ($model) {
@@ -809,11 +809,22 @@ class BudgetController extends Controller
      */
     private function getTotalsByModel($model, $validated)
     {
-        return $model::selectRaw('year, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
+        $data = $model::selectRaw('year, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('year', $validated['year'])
             ->where('month', $validated['month'])
             ->groupBy('year')
             ->first();
+
+        if (empty($data)) {
+            return [
+                'year' => $validated['year'],
+                'total_monthly' => 0,
+                'total_annual' => 0,
+                'percentage_of_total' => 0,
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -821,11 +832,40 @@ class BudgetController extends Controller
      */
     private function getTotalsByType($model, $validated)
     {
-        return $model::selectRaw('type, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
+        $data = $model::selectRaw('type, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('year', $validated['year'])
             ->where('month', $validated['month'])
             ->groupBy('type')
-            ->get();
+            ->get()
+            ->keyBy('type');
+
+        $defaultTypes = [
+            'Home',
+            'Transport',
+            'Basic Living',
+            'Discretionary',
+            'Medical',
+            'Professional Fees',
+            'Insurance',
+            'Kids',
+            'Pet',
+            'Debt Repayments',
+            'User Defined Other',
+        ];
+
+        $result = [];
+        foreach ($defaultTypes as $type) {
+            $result[] = [
+                'type' => $type,
+                'total_monthly' => $data[$type]['total_monthly'] ?? 0,
+                'total_annual' => $data[$type]['total_annual'] ?? 0,
+                'percentage_of_total' => $data[$type]['percentage_of_total'] ?? 0,
+            ];
+        }
+
+        return $result;
+
+        // return $data;
     }
 
     public function saveIncome(Request $request)
@@ -863,13 +903,15 @@ class BudgetController extends Controller
                 'notes' => 'nullable|string',
                 'monthly_amount' => 'nullable|numeric',
                 'annual_amount' => 'nullable|numeric',
+                'year' => 'required|integer',
+                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ], $extraRules);
 
             $validated = $request->validate($rules);
 
-            $currentDate = Carbon::now();
+            /* $currentDate = Carbon::now();
             $validated['year'] = $currentDate->year;
-            $validated['month'] = $currentDate->format('M');
+            $validated['month'] = $currentDate->format('M'); */
 
             DB::beginTransaction();
 

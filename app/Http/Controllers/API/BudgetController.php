@@ -627,8 +627,8 @@ class BudgetController extends Controller
                     'percentage_total' => 0,
                 ],
                 [
-                    'type' => 'User  Defined Other',
-                    'name' => 'User  Defined Other',
+                    'type' => 'User Defined Other',
+                    'name' => 'User Defined Other',
                     'monthly_amount' => 0,
                     'annual_amount' => 0,
                     'percentage_total' => 0,

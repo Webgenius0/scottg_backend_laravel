@@ -80,7 +80,7 @@ class BlogController extends Controller
             $blog->title = $request->title;
             $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
-            $blog->slug = Helper::makeSlug($blog, $request->title);
+            $blog->slug = Helper::makeSlug($blog, $request->title . '-' . time());
             $blog->image = Helper::fileUpload($request->file('image'), 'blog', $request->file('image')->getClientOriginalName());
 
             $blog->save();
@@ -115,7 +115,7 @@ class BlogController extends Controller
             $blog->title = $request->title;
             $blog->blog_category = $request->blog_category;
             $blog->content = $request->content;
-            $blog->slug = Helper::makeSlug($blog, $request->title);
+            $blog->slug = Helper::makeSlug($blog, $request->title . '-' . time());
 
             if ($request->hasFile('image')) {
                 // Delete the old image

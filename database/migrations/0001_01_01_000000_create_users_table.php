@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('google_id')->nullable();
+            $table->string('name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->string('password');
             $table->boolean('is_otp_verified')->default(false);
@@ -30,7 +32,6 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->softDeletes();
             $table->rememberToken();
-
             $table->timestamps();
         });
 

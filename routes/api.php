@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\Auth\SocialLoginController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
 
 // Guest routes
@@ -20,6 +21,9 @@ Route::group(['middleware' => 'guest:api'], function () {
 
     // Login
     Route::post('login', [LoginController::class, 'login']);
+
+    // Social login
+    Route::post('/google/login', [SocialLoginController::class, 'googleLogin']);
 
     // Forgot password
     Route::post('/forget-password', [ResetPasswordController::class, 'forgotPassword']);

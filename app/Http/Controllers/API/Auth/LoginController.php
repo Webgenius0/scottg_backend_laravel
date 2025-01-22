@@ -72,7 +72,7 @@ class LoginController extends Controller
             'token_type' => 'bearer',
             'token'      => $refreshToken,
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'data' => auth('api')->user()->load('personalizedSickle')
+            'data' => auth('api')->user()
         ]);
     }
 }

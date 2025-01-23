@@ -42,11 +42,30 @@ class SystemSettingController extends Controller
             $setting->description = $request->description;
             $setting->copyright = $request->copyright;
 
-            $setting->logo = Helper::fileUpload($request->file('logo'), 'system/logo', $request->file('logo')->getClientOriginalName());
-            $setting->favicon = Helper::fileUpload($request->file('favicon'), 'system/favicon', $request->file('favicon')->getClientOriginalName());
+            if ($request->hasFile('logo')) {
+                // Delete the old image
+                if ($setting->logo) {
+                    Helper::fileDelete($setting->logo);
+                }
+                // Upload the new image
+                $image = Helper::fileUpload($request->file('logo'), 'system/logo', $request->file('logo')->getClientOriginalName());
+                $setting->logo = $image;
+            }
+
+            // Update the favicons
+            if ($request->hasFile('favicon')) {
+                // Delete the old image
+                if ($setting->favicon) {
+                    Helper::fileDelete($setting->favicon);
+                }
+                // Upload the new image
+                $favicon = Helper::fileUpload($request->file('favicon'), 'system/favicon', $request->file('favicon')->getClientOriginalName());
+                $setting->favicon = $favicon;
+            }
 
             $setting->save();
             return back()->with('t-success', 'Updated successfully');
+            
         } catch (Exception $e) {
             return back()->with('t-error', 'Failed to update');
         }

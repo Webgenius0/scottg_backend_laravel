@@ -6,22 +6,24 @@ use App\Http\Controllers\Web\Backend\BlogController;
 use App\Http\Controllers\Web\Backend\AdminController;
 use App\Http\Controllers\Web\Backend\SystemSettingController;
 
-/* Route::get('/', function () {
+Route::get('/', function () {
     return view('welcome');
-}); */
+});
 
 /* Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard'); */
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-}); */
+});
+
+
 
 //AdminController Routes
-Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard')->middleware('admin');
 
 //SystemSettingsController Routes
 Route::get('/admin/system-settings', [SystemSettingController::class, 'index'])->name('admin.system-settings');

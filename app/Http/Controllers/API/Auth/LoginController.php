@@ -46,20 +46,6 @@ class LoginController extends Controller
             // Generate token if email is verified and role matches
             $token = auth('api')->login($user);
 
-            if ($user->role === 'admin') {
-
-                return response()->json([
-                    'status'     => true,
-                    'message'    => 'User logged in successfully.',
-                    'code'       => 200,
-                    'token_type' => 'bearer',
-                    'token'      => $token,
-                    'expires_in' => auth('api')->factory()->getTTL() * 60,
-                    'data'       => auth('api')->user(),
-                    'redirect_to' => '/admin/dashboard'
-                ], 200);
-            }
-
             return response()->json([
                 'status'     => true,
                 'message'    => 'User logged in successfully.',

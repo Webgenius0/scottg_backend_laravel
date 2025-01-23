@@ -26,7 +26,7 @@ class CheckIfAdmin
         }
 
         // If the user is not an admin, return a forbidden response
-        return response()->json(['error' => 'Unauthorized access'], 403);
+        abort(403, 'Unauthorized action.');
 
     }
 }

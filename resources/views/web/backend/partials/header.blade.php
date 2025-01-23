@@ -87,7 +87,7 @@ id="layout-navbar"
         <li>
           <div class="dropdown-divider"></div>
         </li> --}}
-        <li>
+        {{-- <li>
           <a class="dropdown-item" href="#"  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i class="bx bx-power-off me-2"></i>
             <span class="align-middle">Log Out</span>
@@ -95,7 +95,7 @@ id="layout-navbar"
                 @csrf
             </form>
           </a>
-        </li>
+        </li> --}}
       </ul>
     </li>
     <!--/ User -->

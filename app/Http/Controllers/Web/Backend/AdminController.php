@@ -10,7 +10,10 @@ class AdminController extends Controller
     
     public function index()
     {
-        return view('web.backend.layout.dashboard');
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            return view('web.backend.layout.dashboard');
+        }
+        return redirect()->back()->with('t-error', 'Unauthorized access');
     }
 
 }

@@ -16,7 +16,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('web.backend.layout.auth.login');
     }
 
     /**
@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $redirectRoute = $request->user()->role === 'admin' ? 'admin.dashboard' : 'dashboard';
+        $redirectRoute = $request->user()->role === 'admin' ? 'admin.dashboard' : '';
 
         return redirect()->intended(route($redirectRoute));
     }
@@ -44,6 +44,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('login');
     }
 }

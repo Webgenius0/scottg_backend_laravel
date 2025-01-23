@@ -7,11 +7,11 @@
     <title>Welcome</title>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    {{-- <link rel="preconnect" href="https://fonts.bunny.net"> --}}
+    {{-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /> --}}
 
     <!-- Icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    {{-- <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> --}}
 
     <!-- Styles / Scripts -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -50,10 +50,17 @@
         <div class="flex items-center space-x-6">
             @if (Route::has('login'))
                 @auth
-                    <a href="{{ url('/admin/dashboard') }}"
-                        class="rounded-md px-3 py-2 transition text-black hover:text-gray-700 focus:ring-2 focus:ring-[#FF2D20]">
-                        <i class="fas fa-tachometer-alt icon"></i> Dashboard
-                    </a>
+                    @if (Auth::user()->role === 'admin')
+                        <a href="{{ url('/admin/dashboard') }}"
+                            class="rounded-md px-3 py-2 transition text-black hover:text-gray-700 focus:ring-2 focus:ring-[#FF2D20]">
+                            <i class="fas fa-tachometer-alt icon"></i> Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="rounded-md px-3 py-2 transition text-black hover:text-gray-700 focus:ring-2 focus:ring-[#FF2D20]">
+                            <i class="fas fa-sign-in-alt icon"></i> Log in
+                        </a>
+                    @endif
                 @else
                     <a href="{{ route('login') }}"
                         class="rounded-md px-3 py-2 transition text-black hover:text-gray-700 focus:ring-2 focus:ring-[#FF2D20]">

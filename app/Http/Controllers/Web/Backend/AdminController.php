@@ -13,7 +13,7 @@ class AdminController extends Controller
         if (auth()->check() && auth()->user()->role === 'admin') {
             return view('web.backend.layout.dashboard');
         }
-        return redirect()->back()->with('t-error', 'Unauthorized access');
+        abort(403);
     }
 
 }

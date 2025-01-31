@@ -250,18 +250,19 @@ class NetWorthController extends Controller
     {
         return $records->get($type, collect())->sum(function ($record) {
             return collect([
-                'jan',
-                'feb',
-                'mar',
-                'apr',
-                'may',
-                'jun',
-                'jul',
-                'aug',
-                'sep',
-                'oct',
-                'nov',
-                'dec',
+                'total'
+                // 'jan',
+                // 'feb',
+                // 'mar',
+                // 'apr',
+                // 'may',
+                // 'jun',
+                // 'jul',
+                // 'aug',
+                // 'sep',
+                // 'oct',
+                // 'nov',
+                // 'dec',
             ])->sum(fn($month) => $record->$month);
         });
     }
@@ -280,18 +281,19 @@ class NetWorthController extends Controller
                 'institution' => 'nullable|string',
                 'notes' => 'nullable',
                 'year' => 'required|numeric',
-                'jan' => 'nullable|numeric',
-                'feb' => 'nullable|numeric',
-                'mar' => 'nullable|numeric',
-                'apr' => 'nullable|numeric',
-                'may' => 'nullable|numeric',
-                'jun' => 'nullable|numeric',
-                'jul' => 'nullable|numeric',
-                'aug' => 'nullable|numeric',
-                'sep' => 'nullable|numeric',
-                'oct' => 'nullable|numeric',
-                'nov' => 'nullable|numeric',
-                'dec' => 'nullable|numeric',
+                'total' => 'required|numeric',
+                // 'jan' => 'nullable|numeric',
+                // 'feb' => 'nullable|numeric',
+                // 'mar' => 'nullable|numeric',
+                // 'apr' => 'nullable|numeric',
+                // 'may' => 'nullable|numeric',
+                // 'jun' => 'nullable|numeric',
+                // 'jul' => 'nullable|numeric',
+                // 'aug' => 'nullable|numeric',
+                // 'sep' => 'nullable|numeric',
+                // 'oct' => 'nullable|numeric',
+                // 'nov' => 'nullable|numeric',
+                // 'dec' => 'nullable|numeric',
             ]);
 
             // Custom validation for unique name and institution combination
@@ -321,12 +323,14 @@ class NetWorthController extends Controller
                 'year' => $request->input('year'),
             ]);
 
-            $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            /* $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
             foreach ($months as $month) {
                 if ($request->filled($month)) {
                     $netWorth->{$month} = $request->input($month);
                 }
-            }
+            } */
+
+            $netWorth->total = $request->input('total');
 
             $netWorth->notes = $request->input('notes');
 
@@ -359,33 +363,35 @@ class NetWorthController extends Controller
                 'institution' => 'string',
                 'notes' => 'nullable',
                 'year' => 'numeric',
-                'jan' => 'nullable|numeric',
-                'feb' => 'nullable|numeric',
-                'mar' => 'nullable|numeric',
-                'apr' => 'nullable|numeric',
-                'may' => 'nullable|numeric',
-                'jun' => 'nullable|numeric',
-                'jul' => 'nullable|numeric',
-                'aug' => 'nullable|numeric',
-                'sep' => 'nullable|numeric',
-                'oct' => 'nullable|numeric',
-                'nov' => 'nullable|numeric',
-                'dec' => 'nullable|numeric',
+                'total' => 'nullable|numeric',
+                // 'jan' => 'nullable|numeric',
+                // 'feb' => 'nullable|numeric',
+                // 'mar' => 'nullable|numeric',
+                // 'apr' => 'nullable|numeric',
+                // 'may' => 'nullable|numeric',
+                // 'jun' => 'nullable|numeric',
+                // 'jul' => 'nullable|numeric',
+                // 'aug' => 'nullable|numeric',
+                // 'sep' => 'nullable|numeric',
+                // 'oct' => 'nullable|numeric',
+                // 'nov' => 'nullable|numeric',
+                // 'dec' => 'nullable|numeric',
             ]);
 
             // Update net worth record
             $netWorth = NetWorth::where('user_id', auth()->user()->id)->findOrFail($id);
 
-            $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            /* $months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
             foreach ($months as $month) {
                 if ($request->filled($month)) {
                     $netWorth->{$month} = $request->input($month);
                 }
-            }
+            } */
 
             $netWorth->type = $request->input('type');
             $netWorth->name = $request->input('name');
             $netWorth->institution = $request->input('institution');
+            $netWorth->total = $request->input('total');
             $netWorth->notes = $request->input('notes');
             $netWorth->year = $request->input('year');
 

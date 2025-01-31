@@ -41,7 +41,7 @@ class BudgetController extends Controller
         try {
             $validated = $request->validate([
                 'year' => 'required|integer',
-                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
+                // 'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ]);
 
             $defaultItems = [
@@ -638,7 +638,7 @@ class BudgetController extends Controller
             // Fetch records from the database
             $records = $model::where('user_id', auth()->user()->id)
                 ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
+                // ->where('month', $validated['month'])
                 ->select('type', 'name', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get()
                 ->toArray();
@@ -676,7 +676,7 @@ class BudgetController extends Controller
         try {
             $validated = $request->validate([
                 'year' => 'required|integer',
-                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
+                // 'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ]);
 
             $defaultItems = match ($model) {
@@ -784,7 +784,7 @@ class BudgetController extends Controller
             // fetch records
             $records = $model::where('user_id', auth()->user()->id)
                 ->where('year', $validated['year'])
-                ->where('month', $validated['month'])
+                // ->where('month', $validated['month'])
                 ->select('type', DB::raw('round(monthly_amount) as monthly_amount'), DB::raw('round(annual_amount) as annual_amount'), 'percentage_total')
                 ->get();
 
@@ -814,7 +814,7 @@ class BudgetController extends Controller
         $data = $model::selectRaw('year, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('user_id', auth()->id())
             ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
+            // ->where('month', $validated['month'])
             ->groupBy('year')
             ->first();
 
@@ -838,7 +838,7 @@ class BudgetController extends Controller
         $data = $model::selectRaw('type, round(SUM(monthly_amount)) as total_monthly, round(SUM(annual_amount)) as total_annual, round(SUM(percentage_total)) as percentage_of_total')
             ->where('user_id', auth()->id())
             ->where('year', $validated['year'])
-            ->where('month', $validated['month'])
+            // ->where('month', $validated['month'])
             ->groupBy('type')
             ->get()
             ->keyBy('type');
@@ -908,7 +908,7 @@ class BudgetController extends Controller
                 'monthly_amount' => 'nullable|numeric',
                 'annual_amount' => 'nullable|numeric',
                 'year' => 'required|integer',
-                'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
+                // 'month' => 'required|string|size:3|in:jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec',
             ], $extraRules);
 
             $validated = $request->validate($rules);
@@ -923,7 +923,7 @@ class BudgetController extends Controller
                 [
                     'user_id' => auth()->id(),
                     'year' => $validated['year'],
-                    'month' => $validated['month'],
+                    // 'month' => $validated['month'],
                     'type' => $validated['type'],
                 ] + (isset($validated['name']) ? ['name' => $validated['name']] : []),
                 array_merge($validated, $this->calculateAmounts($validated))

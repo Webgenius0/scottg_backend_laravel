@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->integer('year')->nullable();
-            $table->string('month')->nullable();
+            // $table->string('month')->nullable();
             $table->string('type');
             $table->string('name');
             $table->text('notes')->nullable();

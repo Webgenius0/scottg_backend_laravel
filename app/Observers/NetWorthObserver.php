@@ -56,8 +56,7 @@ class NetWorthObserver
     protected function calculateSubtotal($records, $type)
     {
         return $records->where('type', $type)->sum(function ($record) {
-            return $record->jan + $record->feb + $record->mar + $record->apr + $record->may + $record->jun +
-                   $record->jul + $record->aug + $record->sep + $record->oct + $record->nov + $record->dec;
+            return $record->total;
         });
     }
 }

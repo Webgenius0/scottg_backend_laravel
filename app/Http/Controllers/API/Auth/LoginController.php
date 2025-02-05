@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
+
     public function Login(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([

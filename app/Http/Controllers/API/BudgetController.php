@@ -645,7 +645,7 @@ class BudgetController extends Controller
 
             // Merge defaults with existing records
             $mergedRecords = collect($defaultItems)->map(function ($defaultItem) use ($records) {
-                $existingRecord = collect($records)->firstWhere('name', $defaultItem['name']);
+                $existingRecord = collect($records)->where('type', $defaultItem['type'])->firstWhere('name', $defaultItem['name']);
                 return $existingRecord ?? $defaultItem;
             });
 
